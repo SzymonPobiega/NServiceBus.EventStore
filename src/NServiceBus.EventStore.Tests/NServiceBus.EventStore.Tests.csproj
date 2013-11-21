@@ -64,7 +64,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NServiceBus.AddIn\NServiceBus.AddIn.csproj">
+    <ProjectReference Include="..\NServiceBus.EventStore\NServiceBus.EventStore.csproj">
       <Project>{ba731749-22c7-4025-8a4d-465ae8e02e61}</Project>
       <Name>NServiceBus.AddIn</Name>
     </ProjectReference>

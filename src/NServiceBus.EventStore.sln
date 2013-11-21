@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.AddIn", "NServiceBus.AddIn\NServiceBus.AddIn.csproj", "{BA731749-22C7-4025-8A4D-465AE8E02E61}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore", "NServiceBus.EventStore\NServiceBus.EventStore.csproj", "{BA731749-22C7-4025-8A4D-465AE8E02E61}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.AddIn.Tests", "NServiceBus.AddIn.Tests\NServiceBus.AddIn.Tests.csproj", "{8B773CFD-E0F8-402F-AABC-04580289C76A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore.Tests", "NServiceBus.EventStore.Tests\NServiceBus.EventStore.Tests.csproj", "{8B773CFD-E0F8-402F-AABC-04580289C76A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
