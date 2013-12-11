@@ -1,4 +1,4 @@
-﻿using NServiceBus.Transports.EventStore.EventSourced;
+﻿using NServiceBus.Transports.EventStore;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
@@ -8,7 +8,7 @@ namespace NServiceBus.AddIn.Tests.Integration
     {        
         protected override string ProjectionName
         {
-            get { return "comp1_router"; }
+            get { return "comp1_es_router"; }
         }
     }
 }

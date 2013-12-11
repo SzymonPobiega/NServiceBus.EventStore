@@ -10,7 +10,6 @@ using EventStore.Core;
 using EventStore.Core.Services;
 using EventStore.Core.Tests.Helpers;
 using EventStore.Projections.Core;
-using EventStore.Projections.Core.Services.v8;
 using NServiceBus.Transports.EventStore.Config;
 using NUnit.Framework;
 
@@ -18,7 +17,7 @@ namespace NServiceBus.AddIn.Tests.Integration
 {
     public abstract class IntegrationTest
     {
-        private bool UseExternalEventStore = true;
+        private bool UseExternalEventStore = false;
 
         protected readonly UserCredentials AdminCredentials = new UserCredentials(SystemUsers.Admin, SystemUsers.DefaultAdminPassword);
 

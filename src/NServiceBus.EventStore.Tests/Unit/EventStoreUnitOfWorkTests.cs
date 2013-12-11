@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Transactions;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
-using NServiceBus.Transports.EventStore.Transactional;
+using NServiceBus.Transports.EventStore;
 using NUnit.Framework;
 using Rhino.Mocks;
 

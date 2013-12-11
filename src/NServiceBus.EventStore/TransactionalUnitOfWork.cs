@@ -4,7 +4,7 @@ using System.Linq;
 using System.Transactions;
 using EventStore.ClientAPI;
 
-namespace NServiceBus.Transports.EventStore.Transactional
+namespace NServiceBus.Transports.EventStore
 {
     public class TransactionalUnitOfWork
     {

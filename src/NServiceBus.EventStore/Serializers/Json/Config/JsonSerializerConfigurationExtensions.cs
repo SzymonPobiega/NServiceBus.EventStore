@@ -1,8 +1,8 @@
-﻿namespace NServiceBus
-{
-    using Features;
-    using Settings;
+﻿using NServiceBus.Features;
+using NServiceBus.Settings;
 
+namespace NServiceBus.Transports.EventStore.Serializers.Json.Config
+{
     public static class JsonSerializerConfigurationExtensions
     {
         /// <summary>

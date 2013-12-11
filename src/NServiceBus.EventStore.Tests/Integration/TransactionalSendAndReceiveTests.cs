@@ -3,7 +3,6 @@ using System.Transactions;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.Transactional;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
@@ -29,11 +28,7 @@ namespace NServiceBus.AddIn.Tests.Integration
                 };
             routerProjectionCreattor.RegisterProjectionsFor(SenderAddress,"");
 
-            var unitOfWork = new TransactionalUnitOfWork(new DefaultConnectionManager(ConnectionConfiguration))
-                {
-                    EndpointAddress = SenderAddress
-                };
-            var transactionalSender = new TransactionalMessageSender(unitOfWork);
+            var transactionalSender = CreateSender();
 
             using (var tx = new TransactionScope())
             {

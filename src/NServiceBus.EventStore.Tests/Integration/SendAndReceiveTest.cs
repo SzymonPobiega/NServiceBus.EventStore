@@ -39,6 +39,41 @@ namespace NServiceBus.AddIn.Tests.Integration
             dequeueStrategy.Start(1);
         }
 
+        protected MessageSender CreateSender()
+        {
+            var connectionManager = new DefaultConnectionManager(ConnectionConfiguration);
+            var transactionalUnitOfWork = new TransactionalUnitOfWork(connectionManager)
+                {
+                    EndpointAddress = SenderAddress
+                };
+            var eventSourcedUnitOfWork = new EventSourcedUnitOfWork(connectionManager)
+                {
+                    EndpointAddress = SenderAddress
+                };
+            return new MessageSender(transactionalUnitOfWork, eventSourcedUnitOfWork, connectionManager)
+                {
+                    EndpointAddress = SenderAddress
+                };
+        }
+
+        protected MessagePublisher CreatePublisher(Address sourceAddress)
+        {
+            var connectionManager = new DefaultConnectionManager(ConnectionConfiguration);
+            var transactionalUnitOfWork = new TransactionalUnitOfWork(connectionManager)
+                {
+                    EndpointAddress = sourceAddress
+                };
+            var eventSourcedUnitOfWork = new EventSourcedUnitOfWork(connectionManager)
+                {
+                    EndpointAddress = sourceAddress
+                };
+
+            return new MessagePublisher(transactionalUnitOfWork, eventSourcedUnitOfWork, connectionManager)
+                {
+                    EndpointAddress = sourceAddress
+                };
+        }
+
         protected bool ExpectReceive(int messageNumber, TimeSpan timeout)
         {
             Event.Reset();
@@ -55,12 +90,9 @@ namespace NServiceBus.AddIn.Tests.Integration
             }
         }
 
-        protected void PublishMessages(IPublishMessages publisher, int count, Type eventType)
+        protected void PublishMessage(IPublishMessages publisher, Type eventType, int i)
         {
-            for (var i = 0; i < count; i++)
-            {
-                publisher.Publish(GenerateTransportMessage(i, eventType.FullName), new[]{eventType});
-            }
+            publisher.Publish(GenerateTransportMessage(i, eventType.FullName), new[] { eventType });
         }
 
         private TransportMessage GenerateTransportMessage(int i, string messagetype)

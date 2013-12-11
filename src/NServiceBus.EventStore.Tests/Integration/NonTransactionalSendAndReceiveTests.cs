@@ -2,7 +2,6 @@
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.NonTransactional;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
@@ -22,10 +21,8 @@ namespace NServiceBus.AddIn.Tests.Integration
                 };
             sinkProjectionCreator.RegisterProjectionsFor(ReceiverAddress,"");
 
-            var nonTransactionalSender = new NonTransactionalMessageSender(new DefaultConnectionManager(ConnectionConfiguration))
-                {
-                    EndpointAddress = SenderAddress
-                };
+            var nonTransactionalSender = CreateSender();
+
             SendMessages(nonTransactionalSender, 5);
 
             if (!ExpectReceive(5, TimeSpan.FromSeconds(5)))

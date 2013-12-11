@@ -1,6 +1,4 @@
-﻿using NServiceBus.Transports;
-
-namespace NServiceBus
+﻿namespace NServiceBus.Transports.EventStore.Config
 {
     public class EventStore : TransportDefinition
     {

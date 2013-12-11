@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using NServiceBus.Transports.EventStore.Transactional;
 
 namespace NServiceBus.Transports.EventStore.Projections
 {

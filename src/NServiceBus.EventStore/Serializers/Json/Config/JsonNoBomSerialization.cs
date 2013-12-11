@@ -1,12 +1,10 @@
-﻿using NServiceBus.Transports.EventStore.Serializers.Json;
+﻿using NServiceBus.Features;
+using NServiceBus.MessageInterfaces.MessageMapper.Reflection;
+using NServiceBus.Settings;
 
-namespace NServiceBus.Features
+namespace NServiceBus.Transports.EventStore.Serializers.Json.Config
 {
-    using MessageInterfaces.MessageMapper.Reflection;
-    using Serializers.Json;
-    using Settings;
-
-    public class JsonNoBomSerialization : Feature<Categories.Serializers>
+    public class JsonNoBomSerialization : Feature<Features.Categories.Serializers>
     {
         public override void Initialize()
         {

@@ -1,4 +1,4 @@
-﻿using NServiceBus.Transports.EventStore.Transactional;
+﻿using NServiceBus.Transports.EventStore;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration

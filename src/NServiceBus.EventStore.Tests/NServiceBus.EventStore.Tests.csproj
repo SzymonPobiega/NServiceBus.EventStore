@@ -93,8 +93,10 @@
     <Compile Include="Integration\EventSourcedSendAndReceiveTests.cs" />
     <Compile Include="Integration\NonTransactionalPublishTests.cs" />
     <Compile Include="Integration\ProjectionCreatorTest.cs" />
+    <Compile Include="Integration\PublishTest.cs" />
     <Compile Include="Integration\SendAndReceiveTest.cs" />
     <Compile Include="Integration\TransactionalModeRouterProjectionCreatorTests.cs" />
+    <Compile Include="Integration\TransactionalPublishTests.cs" />
     <Compile Include="Integration\TransactionalSendAndReceiveTests.cs" />
     <Compile Include="Integration\IntegrationTest.cs" />
     <Compile Include="Integration\NonTransactionalSendAndReceiveTests.cs" />

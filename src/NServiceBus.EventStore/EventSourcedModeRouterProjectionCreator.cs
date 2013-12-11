@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Transports.EventStore.EventSourced
+﻿namespace NServiceBus.Transports.EventStore
 {
     public class EventSourcedModeRouterProjectionCreator : AbstractProjectionCreator
     {

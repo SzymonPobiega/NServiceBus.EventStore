@@ -2,8 +2,6 @@
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.EventSourced;
-using NServiceBus.Transports.EventStore.NonTransactional;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
@@ -33,13 +31,13 @@ namespace NServiceBus.AddIn.Tests.Integration
                 {
                     EndpointAddress = SenderAddress
                 };
-            var sender = new EventSourcedMessageSender(unitOfWork);
+            var sender = CreateSender();
             
             unitOfWork.Begin();
-            SendMessages(sender, 5);
 
-            unitOfWork.SetAggregateId("58");
-            unitOfWork.SetExpectedVersion(ExpectedVersion.NoStream);
+            unitOfWork.Initialize("58",ExpectedVersion.NoStream);
+
+            SendMessages(sender, 5);
 
             unitOfWork.End();
 

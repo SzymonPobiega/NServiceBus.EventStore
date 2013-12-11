@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using EventStore.ClientAPI;
 using NServiceBus.UnitOfWork;
 
-namespace NServiceBus.Transports.EventStore.EventSourced
+namespace NServiceBus.Transports.EventStore
 {
-    public class EventSourcedUnitOfWork : IManageUnitsOfWork
+    public class EventSourcedUnitOfWork : IManageUnitsOfWork, IEventSourcedUnitOfWork
     {
         public Address EndpointAddress { get; set; }
 
@@ -33,19 +32,28 @@ namespace NServiceBus.Transports.EventStore.EventSourced
             messages = null;
         }
 
-        public void SetAggregateId(string id)
+        public void Initialize(string aggregateId, int expectedVersion)
         {
-            aggregateId = id;
+            if (aggregateId == null)
+            {
+                throw new ArgumentNullException("aggregateId");
+            }
+            this.aggregateId = aggregateId;
+            this.expectedVersion = expectedVersion;
         }
 
-        public void SetExpectedVersion(int aExpectedVersion)
+        public bool IsInitialized
         {
-            expectedVersion = aExpectedVersion;
+            get { return aggregateId != null; }
         }
 
-        public void Enqueue(EventData message)
+        public void Publish(params EventData[] rawMessages)
         {
-            messages.Add(message);
+            if (aggregateId == null || !expectedVersion.HasValue)
+            {
+                throw new InvalidOperationException("The unit of work has to be initialized prior to publishing events.");
+            }
+            messages.AddRange(rawMessages);
         }
 
         private void CommitTransaction()
@@ -54,23 +62,11 @@ namespace NServiceBus.Transports.EventStore.EventSourced
             {
                 return;
             }
-
-            if (aggregateId == null)
-            {
-                throw new InvalidOperationException("Stream ID must be set before completing the UoW.");
-            }
-            if (!expectedVersion.HasValue)
-            {
-                throw new InvalidOperationException("Expected version must be set before completing the UoW.");
-            }
-
-            if (!messages.Any())
-                return;
-
             connectionManager.GetConnection().AppendToStream(EndpointAddress.GetAggregateStream(aggregateId), expectedVersion.Value, messages);
         }
 
-        IList<EventData> messages;
+        List<EventData> messages;
+        
     }
 
     

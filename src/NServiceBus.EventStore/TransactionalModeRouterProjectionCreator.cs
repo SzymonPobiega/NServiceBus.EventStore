@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Transports.EventStore.Transactional
+﻿namespace NServiceBus.Transports.EventStore
 {
     public class TransactionalModeRouterProjectionCreator : AbstractProjectionCreator
     {

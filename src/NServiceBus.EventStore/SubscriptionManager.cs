@@ -34,7 +34,7 @@ fromStreams([{0}])
 
         public void Subscribe(Type eventType, Address publisherAddress)
         {
-            var typeName = eventType.AssemblyQualifiedName;
+            var typeName = eventType.FullName;
             var publisherOutgoingQueue = publisherAddress.GetFinalOutgoingQueue();
             var projectionManager = connectionManager.GetProjectionManager();
             var projectionName = EndpointAddress.GetSubscriptionProjectionName();
