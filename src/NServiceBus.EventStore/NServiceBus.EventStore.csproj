@@ -11,7 +11,7 @@
     <AssemblyName>NServiceBus.Transports.EventStore</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <SignAssembly>true</SignAssembly>
+    <SignAssembly>false</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\NServiceBus.snk</AssemblyOriginatorKeyFile>
     <FodyPath>..\packages\Fody</FodyPath>
     <SolutionDir Condition="'$(SolutionDir)'=='' or '$(SolutionDir)'=='*Undefined*'">..\</SolutionDir>
@@ -41,15 +41,24 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="EventStore.ClientAPI">
+      <HintPath>..\packages\EventStore.Client\lib\net40\EventStore.ClientAPI.dll</HintPath>
+    </Reference>
     <Reference Include="Janitor">
       <HintPath>..\packages\Janitor.Fody\Lib\portable-net4+sl4+wp7+win8+MonoAndroid16+MonoTouch40\Janitor.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\packages\Newtonsoft.Json\lib\net40\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NServiceBus">
       <HintPath>..\packages\NServiceBus.Interfaces\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>..\packages\EventStore.Testing\lib\net40\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -57,9 +66,51 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddressExtensions.cs" />
+    <Compile Include="CompositeQueueCreator.cs" />
+    <Compile Include="Config\ConnectionConfiguration.cs" />
+    <Compile Include="Config\ConnectionConfigurationBuilder.cs" />
+    <Compile Include="Config\ConnectionStringParser.cs" />
+    <Compile Include="Config\EventStore.cs" />
+    <Compile Include="Config\EventStoreSettings.cs" />
+    <Compile Include="Config\EventStoreTransport.cs" />
+    <Compile Include="Config\IConnectionConfiguration.cs" />
+    <Compile Include="Config\IConnectionStringParser.cs" />
+    <Compile Include="Config\EventStoreSerializationMethodValidator.cs" />
+    <Compile Include="IRegisterProjections.cs" />
+    <Compile Include="ReceiverSinkProjectionCreator.cs" />
+    <Compile Include="Projections\DefaultProjectionsManager.cs" />
+    <Compile Include="EventSourced\EventSourcedMessagePublisher.cs" />
+    <Compile Include="EventSourced\EventSourcedMessageSender.cs" />
+    <Compile Include="DefaultConnectionManager.cs" />
+    <Compile Include="DequeueStrategy.cs" />
+    <Compile Include="EventStoreMessageMetadata.cs" />
+    <Compile Include="EventSourced\EventSourcedUnitOfWork.cs" />
+    <Compile Include="Projections\ManagedProjectionState.cs" />
+    <Compile Include="Projections\ProjectionInfo.cs" />
+    <Compile Include="Projections\ProjectionList.cs" />
+    <Compile Include="AbstractProjectionCreator.cs" />
+    <Compile Include="EventSourced\EventSourcedModeRouterProjectionCreator.cs" />
+    <Compile Include="Serializers\Json\Config\JsonNoBomSerialization.cs" />
+    <Compile Include="Serializers\Json\Config\JsonSerializerConfigurationExtensions.cs" />
+    <Compile Include="Serializers\Json\Internal\MessageContractResolver.cs" />
+    <Compile Include="Serializers\Json\Internal\MessageSerializationBinder.cs" />
+    <Compile Include="Serializers\Json\Internal\XContainerConverter.cs" />
+    <Compile Include="Serializers\Json\JsonNoBomMessageSerializer.cs" />
+    <Compile Include="Serializers\Json\JsonMessageSerializerBase.cs" />
+    <Compile Include="Transactional\TransactionalModeRouterProjectionCreator.cs" />
+    <Compile Include="SubscriptionManager.cs" />
+    <Compile Include="Transactional\TransactionalMessagePublisher.cs" />
+    <Compile Include="Transactional\TransactionalMessageSender.cs" />
+    <Compile Include="Transactional\TransactionalUnitOfWork.cs" />
+    <Compile Include="IManageEventStoreConnections.cs" />
+    <Compile Include="Projections\IProjectionsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TransportMessageConverter.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml">

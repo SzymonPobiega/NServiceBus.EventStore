@@ -16,13 +16,11 @@
     <copyright>Copyright 2010-2013 NServiceBus. All rights reserved</copyright>
     <tags>nservicebus eventstore geteventstore servicebus msmq cqrs publish subscribe</tags>
     <dependencies>
-      <dependency id="NServiceBus" version="4.1.0.0-unstable3385" />
-      <dependency id="NServiceBus.Interfaces" version="4.1.0.0-unstable3385" />
+      <dependency id="NServiceBus" />
+      <dependency id="NServiceBus.Interfaces" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\binaries\NServiceBus.EventStore.???" target="lib\net40" />
-    <file src="tools\**" target="tools" />
-    <file src="..\..\src\NServiceBus.EventStore\**\*.cs" target="src\NServiceBus.EventStore" />
+    <file src="..\..\binaries\NServiceBus.Transports.EventStore.dll" target="lib\net40" />        
   </files>
 </package>
