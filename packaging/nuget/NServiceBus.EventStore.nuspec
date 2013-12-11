@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
-    <id>NServiceBus.AddIn</id>
-    <title>NServiceBus AddIn</title>
+    <id>NServiceBus.EventStore</id>
+    <title>NServiceBus EventStore</title>
     <version>4.0.0-alpha0</version>
     <authors>NServiceBus Ltd</authors>
     <owners>Udi Dahan, Andreas Ohlund, John Simons</owners>
@@ -10,19 +10,17 @@
     <projectUrl>http://particular.net/</projectUrl>
     <iconUrl>http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</iconUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>Generic add in for NServiceBus</description>
+    <description>EventStore based transport for NServiceBus</description>
     <releaseNotes>
     </releaseNotes>
     <copyright>Copyright 2010-2013 NServiceBus. All rights reserved</copyright>
-    <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
+    <tags>nservicebus eventstore geteventstore servicebus msmq cqrs publish subscribe</tags>
     <dependencies>
-      <dependency id="NServiceBus" version="4.1.0.0-unstable3385" />
-      <dependency id="NServiceBus.Interfaces" version="4.1.0.0-unstable3385" />
+      <dependency id="NServiceBus" />
+      <dependency id="NServiceBus.Interfaces" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\binaries\NServiceBus.AddIn.???" target="lib\net40" />
-    <file src="tools\**" target="tools" />
-    <file src="..\..\src\NServiceBus.AddIn\**\*.cs" target="src\NServiceBus.AddIn" />
+    <file src="..\..\binaries\NServiceBus.Transports.EventStore.dll" target="lib\net40" />        
   </files>
 </package>
