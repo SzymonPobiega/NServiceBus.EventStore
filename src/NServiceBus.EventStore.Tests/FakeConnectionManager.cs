@@ -1,4 +1,5 @@
 ﻿using EventStore.ClientAPI;
+using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Transports.EventStore.Projections;
 

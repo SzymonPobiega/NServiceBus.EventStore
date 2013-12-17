@@ -89,19 +89,24 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Integration\EventSourcedModeRouterProjectionCreatorTests.cs" />
-    <Compile Include="Integration\EventSourcedSendAndReceiveTests.cs" />
-    <Compile Include="Integration\NonTransactionalPublishTests.cs" />
-    <Compile Include="Integration\ProjectionCreatorTest.cs" />
-    <Compile Include="Integration\PublishTest.cs" />
-    <Compile Include="Integration\SendAndReceiveTest.cs" />
-    <Compile Include="Integration\TransactionalModeRouterProjectionCreatorTests.cs" />
-    <Compile Include="Integration\TransactionalPublishTests.cs" />
-    <Compile Include="Integration\TransactionalSendAndReceiveTests.cs" />
-    <Compile Include="Integration\IntegrationTest.cs" />
-    <Compile Include="Integration\NonTransactionalSendAndReceiveTests.cs" />
-    <Compile Include="Unit\ConnectionStringParserTests.cs" />
-    <Compile Include="Unit\EventStoreUnitOfWorkTests.cs" />
+    <Compile Include="IntegrationTest.cs" />
+    <Compile Include="SagaPersistence\Integration\SagaIndexerTests.cs" />
+    <Compile Include="SagaPersistence\Integration\SagaPersisterTests.cs" />
+    <Compile Include="SagaPersistence\Integration\TestSaga.cs" />
+    <Compile Include="Transport\Integration\EventSourcedModeRouterProjectionCreatorTests.cs" />
+    <Compile Include="Transport\Integration\EventSourcedSendAndReceiveTests.cs" />
+    <Compile Include="Transport\Integration\NonTransactionalPublishTests.cs" />
+    <Compile Include="Transport\Integration\ProjectionCreatorTest.cs" />
+    <Compile Include="Transport\Integration\PublishTest.cs" />
+    <Compile Include="Transport\Integration\SendAndReceiveTest.cs" />
+    <Compile Include="Transport\Integration\TransactionalModeRouterProjectionCreatorTests.cs" />
+    <Compile Include="Transport\Integration\TransactionalPublishTests.cs" />
+    <Compile Include="Transport\Integration\TransactionalSendAndReceiveTests.cs" />
+    <Compile Include="Transport\Integration\TransportIntegrationTest.cs" />
+    <Compile Include="Transport\Integration\NonTransactionalSendAndReceiveTests.cs" />
+    <Compile Include="Scratchpad\TimeoutEventGenetor.cs" />
+    <Compile Include="Transport\Unit\ConnectionStringParserTests.cs" />
+    <Compile Include="Transport\Unit\EventStoreUnitOfWorkTests.cs" />
     <Compile Include="FakeConnectionManager.cs" />
     <Compile Include="FakeProjectionsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -140,6 +145,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\GitFlowVersion\build\GitFlowVersionTask.targets" />
