@@ -62,7 +62,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
 
         public T Get<T>(string property, object value) where T : IContainSagaData
         {
-            var indexStreamName = typeof (T).FullName + "_by_" + property + "-" + value;
+            var indexStreamName = "SagaIndex-" + typeof (T).FullName + "_by_" + property + "#" + value;
             return GetFromStream<T>(indexStreamName);
         }
 

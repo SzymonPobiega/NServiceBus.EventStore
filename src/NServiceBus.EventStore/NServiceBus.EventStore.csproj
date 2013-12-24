@@ -74,6 +74,7 @@
     <Compile Include="Persistence\EventStore\SagaPersister\ConfigureEventStoreSagaPersister.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\EventStoreSagaIndexer.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\EventStoreSagaPersister.cs" />
+    <Compile Include="Persistence\EventStore\SagaPersister\SagaIndexerProjectionCreator.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\SagaVersion.cs" />
     <Compile Include="Persistence\EventStore\TimeoutPersister\EventStoreTimeoutPersister.cs" />
     <Compile Include="Transports\EventStore\AddressExtensions.cs" />

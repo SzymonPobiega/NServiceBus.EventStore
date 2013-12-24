@@ -41,6 +41,12 @@ namespace NServiceBus.AddIn.Tests.SagaPersistence.Integration
         {
             var projectionsManager = new ProjectionsManager(new NoopLogger(), HttpEndPoint);
             projectionsManager.Enable("$by_category", AdminCredentials);
+
+            var projectionCreator = new SagaIndexerProjectionCreator
+                {
+                    ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
+                };
+            projectionCreator.RegisterProjectionsFor(null, null);
             
             persister = new EventStoreSagaPersister(new DefaultConnectionManager(ConnectionConfiguration));
 

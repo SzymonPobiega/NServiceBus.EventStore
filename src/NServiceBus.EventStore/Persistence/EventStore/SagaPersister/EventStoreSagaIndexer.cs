@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using NServiceBus.Saga;
+using NServiceBus.Config;
 using NServiceBus.Transports.EventStore;
 
 namespace NServiceBus.Persistence.EventStore.SagaPersister
 {
-    public class EventStoreSagaIndexer : IIndexSagas
+    public class EventStoreSagaIndexer : IWantToRunWhenConfigurationIsComplete
     {
         private const string ProjectionTemplate = @"fromCategory('Saga_{0}')
 .foreachStream()
@@ -19,7 +19,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
     }}
 }})";
         private const string PropertyTemplate = @"if (typeof s.saga === 'undefined' || s.saga['{1}'] !== e.data['{1}']) {{
-            linkTo('{0}_by_{2}-'+e.data['{1}'],e);
+            linkTo('SagaIntermediateIndex-{0}_by_{2}#'+e.data['{1}'],e,{{ a : 'a'}});
         }}";
 
 
@@ -45,7 +45,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
         {
             var projectionManager = connectionManager.GetProjectionManager();
             var sagaName = sagaEntityType.FullName;
-            var projectionName = string.Format("SagaIndex-" + sagaName);
+            var projectionName = string.Format("SagaIntermediateIndex-" + sagaName);
             var propertyIndices = propertiesToIndex.Select(x => string.Format(PropertyTemplate, sagaName, x.Name.ToCamelCase(), x.Name));
 
             var query = string.Format(ProjectionTemplate, sagaName, string.Join(Environment.NewLine, propertyIndices));
@@ -59,6 +59,11 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
             {
                 projectionManager.UpdateQuery(projectionName, query);                
             }
+        }
+
+        public void Run()
+        {
+            EnsureIndicesForProperties(Features.Sagas.SagaEntityToMessageToPropertyLookup);
         }
     }
 }

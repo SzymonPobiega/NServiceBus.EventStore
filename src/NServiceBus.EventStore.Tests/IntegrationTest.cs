@@ -16,7 +16,7 @@ namespace NServiceBus.AddIn.Tests
 {
     public abstract class IntegrationTest
     {
-        private bool UseExternalEventStore = false;
+        private bool UseExternalEventStore = true;
 
         protected readonly UserCredentials AdminCredentials = new UserCredentials(SystemUsers.Admin, SystemUsers.DefaultAdminPassword);
 

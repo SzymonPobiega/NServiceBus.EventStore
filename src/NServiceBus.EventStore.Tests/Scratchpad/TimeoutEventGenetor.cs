@@ -8,8 +8,49 @@ using EventStore.Common.Utils;
 namespace NServiceBus.AddIn.Tests.Scratchpad
 {
     [TestFixture]
-    public class TimeoutEventGenetor
+    public class EventGenerator
     {
+        [Test]
+        public void GenerateAnEvent()
+        {
+            using (var conn = EventStoreConnection.Create(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113)))
+            {
+                conn.Connect();
+                var metadata = new Metadata
+                    {
+                        FieldA = "A",
+                        FieldB = "B"
+                    };
+                var payload = new Payload()
+                    {
+                        GuidValue = Guid.NewGuid(),
+                        IntValue = 77,
+                        StringValue = "SomeText"
+                    };
+
+                conn.AppendToStream("Stream", ExpectedVersion.Any, new EventData(Guid.NewGuid(), "Event", true,
+                                                                                 payload.ToJsonBytes(),
+                                                                                 metadata.ToJsonBytes()));
+            }
+        }
+
+        public class Payload
+        {
+            public String StringValue { get; set; }
+            public int IntValue { get; set; }
+            public Guid GuidValue { get; set; }
+        }
+
+        public class Metadata
+        {
+            public string FieldA { get; set; }
+            public string FieldB { get; set; }
+        }
+    }
+
+    [TestFixture]
+    public class TimeoutEventGenetor
+    {       
         [Test]
         public void GenerateSomeTimeoutData()
         {
