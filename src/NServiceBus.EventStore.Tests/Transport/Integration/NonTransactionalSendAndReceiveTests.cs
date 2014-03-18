@@ -8,7 +8,7 @@ using NUnit.Framework;
 namespace NServiceBus.AddIn.Tests.Integration
 {
     [TestFixture]
-    public class NonTransactionalSendAndReceiveTests : SendAndReceiveTest
+    public class NonTransactionalSendAndReceiveTests : SingleReceiverTest
     {
         [Test]
         public void It_can_send_and_receive_messages()

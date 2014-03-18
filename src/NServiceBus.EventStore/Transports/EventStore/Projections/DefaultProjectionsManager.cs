@@ -4,6 +4,7 @@ using System.Linq;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Utils;
 using EventStore.ClientAPI.SystemData;
+using NServiceBus.Transports.EventStore.Serializers.Json;
 
 namespace NServiceBus.Transports.EventStore.Projections
 {

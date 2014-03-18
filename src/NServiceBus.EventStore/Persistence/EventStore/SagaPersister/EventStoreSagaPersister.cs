@@ -4,10 +4,11 @@ using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Utils;
 using NServiceBus.Saga;
 using NServiceBus.Transports.EventStore;
+using NServiceBus.Transports.EventStore.Serializers.Json;
 
 namespace NServiceBus.Persistence.EventStore.SagaPersister
 {
-    public class EventStoreSagaPersister : IPersistSagas
+    public class EventStoreSagaPersister //: IPersistSagas
     {
         private const string SagaDataEventType = "SagaData";
         private readonly IManageEventStoreConnections connectionManager;

@@ -1,4 +1,5 @@
 ﻿using NServiceBus.Config;
+using NServiceBus.Settings;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Transports.EventStore.Config;
@@ -9,6 +10,10 @@ namespace NServiceBus.Features
     {
         public override void Initialize()
         {
+            if (!SettingsHolder.GetOrDefault<bool>("ScaleOut.UseSingleBrokerQueue"))
+            {
+                Address.InitializeLocalAddress(Address.Local.Queue + "." + Address.Local.Machine);
+            }
             if (!NServiceBus.Configure.HasComponent<IConnectionConfiguration>())
             {
                 NServiceBus.Configure.Instance.EventStore();

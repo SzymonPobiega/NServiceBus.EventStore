@@ -36,34 +36,39 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EventStore.ClientAPI">
-      <HintPath>..\packages\EventStore.Client\lib\net40\EventStore.ClientAPI.dll</HintPath>
+    <Reference Include="EventStore.BufferManagement">
+      <HintPath>..\lib\EventStore.BufferManagement.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Common">
-      <HintPath>..\packages\EventStore.Testing\lib\net40\EventStore.Common.dll</HintPath>
+    <Reference Include="EventStore.ClientAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\EventStore.ClientAPI.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Core">
-      <HintPath>..\packages\EventStore.Testing\lib\net40\EventStore.Core.dll</HintPath>
+    <Reference Include="EventStore.Common, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\EventStore.Common.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Core.Tests">
-      <HintPath>..\packages\EventStore.Testing\lib\net40\EventStore.Core.Tests.dll</HintPath>
+    <Reference Include="EventStore.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\EventStore.Core.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Projections.Core">
-      <HintPath>..\packages\EventStore.Testing\lib\net40\EventStore.Projections.Core.dll</HintPath>
+    <Reference Include="EventStore.Core.Tests, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\EventStore.Core.Tests.dll</HintPath>
+    </Reference>
+    <Reference Include="EventStore.Projections.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\EventStore.Projections.Core.dll</HintPath>
     </Reference>
     <Reference Include="EventStore.Transport.Http">
-      <HintPath>..\packages\EventStore.Testing\lib\net40\EventStore.Transport.Http.dll</HintPath>
+      <HintPath>..\lib\EventStore.Transport.Http.dll</HintPath>
     </Reference>
     <Reference Include="EventStore.Transport.Tcp">
-      <HintPath>..\packages\EventStore.Testing\lib\net40\EventStore.Transport.Tcp.dll</HintPath>
+      <HintPath>..\lib\EventStore.Transport.Tcp.dll</HintPath>
     </Reference>
     <Reference Include="FluentAssertions">
       <HintPath>..\packages\FluentAssertions\lib\net40\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json\lib\net40\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="NLog">
       <HintPath>..\packages\NLog\lib\net40\NLog.dll</HintPath>
     </Reference>
@@ -93,13 +98,18 @@
     <Compile Include="SagaPersistence\Integration\SagaIndexerTests.cs" />
     <Compile Include="SagaPersistence\Integration\SagaPersisterTests.cs" />
     <Compile Include="SagaPersistence\Integration\TestSaga.cs" />
+    <Compile Include="Transport\Integration\NonTransactionalPolymorphicPublishTests.cs" />
+    <Compile Include="Transport\Integration\PolymorphicPublishTest.cs" />
     <Compile Include="Transport\Integration\EventSourcedModeRouterProjectionCreatorTests.cs" />
     <Compile Include="Transport\Integration\EventSourcedSendAndReceiveTests.cs" />
     <Compile Include="Transport\Integration\NonTransactionalPublishTests.cs" />
     <Compile Include="Transport\Integration\ProjectionCreatorTest.cs" />
     <Compile Include="Transport\Integration\PublishTest.cs" />
+    <Compile Include="Transport\Integration\Receiver.cs" />
     <Compile Include="Transport\Integration\SendAndReceiveTest.cs" />
+    <Compile Include="Transport\Integration\SingleReceiverTest.cs" />
     <Compile Include="Transport\Integration\TransactionalModeRouterProjectionCreatorTests.cs" />
+    <Compile Include="Transport\Integration\TransactionalPolymorphicPublishTests.cs" />
     <Compile Include="Transport\Integration\TransactionalPublishTests.cs" />
     <Compile Include="Transport\Integration\TransactionalSendAndReceiveTests.cs" />
     <Compile Include="Transport\Integration\TransportIntegrationTest.cs" />
@@ -124,23 +134,23 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\packages\EventStore.Testing\lib\net40\js1.dll">
+    <Content Include="..\lib\js1.dll">
       <Link>js1.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\packages\EventStore.Testing\lib\net40\Prelude\1Prelude.js">
+    <Content Include="..\lib\Prelude\1Prelude.js">
       <Link>Prelude\1Prelude.js</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\packages\EventStore.Testing\lib\net40\Prelude\Modules.js">
+    <Content Include="..\lib\Prelude\Modules.js">
       <Link>Prelude\Modules.js</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\packages\EventStore.Testing\lib\net40\Prelude\ModulesExecuted.js">
+    <Content Include="..\lib\Prelude\ModulesExecuted.js">
       <Link>Prelude\ModulesExecuted.js</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\packages\EventStore.Testing\lib\net40\Prelude\Projections.js">
+    <Content Include="..\lib\Prelude\Projections.js">
       <Link>Prelude\Projections.js</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

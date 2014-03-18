@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using NServiceBus.MessageInterfaces;
 using Newtonsoft.Json;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace NServiceBus.Transports.EventStore.Serializers.Json
 {

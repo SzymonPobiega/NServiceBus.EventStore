@@ -8,9 +8,19 @@ using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
 {
-    public abstract class PublishTest : SendAndReceiveTest
+    public abstract class PublishTest : SingleReceiverTest
     {
+        protected MessageMetadataRegistry MetadataRegistry;
         protected abstract void PublishMessages(IPublishMessages publisher, int count, Type eventType);
+
+        [SetUp]
+        public void SetUpMessageMetadata()
+        {
+            MetadataRegistry = new MessageMetadataRegistry();
+            MetadataRegistry.RegisterMessageType(typeof(EventA));
+            MetadataRegistry.RegisterMessageType(typeof(EventB));
+            MetadataRegistry.RegisterMessageType(typeof(EventC));
+        }
 
         [Test]
         public void It_can_receive_subscribed_messages()
@@ -19,7 +29,14 @@ namespace NServiceBus.AddIn.Tests.Integration
             var publisher2Address = new Address("pub2", "node1");
 
             var projectionsManager = new ProjectionsManager(new NoopLogger(), HttpEndPoint);
-            projectionsManager.Enable("$by_category", AdminCredentials);
+            try
+            {
+                projectionsManager.Enable("$by_category", AdminCredentials);
+            }
+            catch (Exception)
+            {
+                //best effort
+            }
 
             var sinkProjectionCreator = new ReceiverSinkProjectionCreator
                 {
@@ -34,12 +51,7 @@ namespace NServiceBus.AddIn.Tests.Integration
             transactionalModeRouterProjectionCreator.RegisterProjectionsFor(publisher1Address, "");
             transactionalModeRouterProjectionCreator.RegisterProjectionsFor(publisher2Address, "");
 
-            var metadataRegistry = new MessageMetadataRegistry();
-            metadataRegistry.RegisterMessageType(typeof(EventA));
-            metadataRegistry.RegisterMessageType(typeof(EventB));
-            metadataRegistry.RegisterMessageType(typeof(EventC));
-
-            var subscriptionManager = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration), metadataRegistry)
+            var subscriptionManager = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration), MetadataRegistry)
                 {
                     EndpointAddress = ReceiverAddress
                 };

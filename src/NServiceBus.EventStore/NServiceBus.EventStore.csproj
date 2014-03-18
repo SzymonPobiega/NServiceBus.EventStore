@@ -41,15 +41,17 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EventStore.ClientAPI">
-      <HintPath>..\packages\EventStore.Client\lib\net40\EventStore.ClientAPI.dll</HintPath>
+    <Reference Include="EventStore.ClientAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\EventStore.ClientAPI.dll</HintPath>
     </Reference>
     <Reference Include="Janitor">
       <HintPath>..\packages\Janitor.Fody\Lib\portable-net4+sl4+wp7+win8+MonoAndroid16+MonoTouch40\Janitor.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>..\packages\Newtonsoft.Json\lib\net40\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus">
       <HintPath>..\packages\NServiceBus.Interfaces\lib\net40\NServiceBus.dll</HintPath>
@@ -57,8 +59,9 @@
     <Reference Include="NServiceBus.Core">
       <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
-    <Reference Include="protobuf-net">
-      <HintPath>..\packages\EventStore.Testing\lib\net40\protobuf-net.dll</HintPath>
+    <Reference Include="protobuf-net, Version=2.0.0.594, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\lib\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -88,6 +91,7 @@
     <Compile Include="Transports\EventStore\Config\IConnectionConfiguration.cs" />
     <Compile Include="Transports\EventStore\Config\IConnectionStringParser.cs" />
     <Compile Include="Transports\EventStore\Config\EventStoreSerializationMethodValidator.cs" />
+    <Compile Include="NoopLogger.cs" />
     <Compile Include="Transports\EventStore\IEventSourcedUnitOfWork.cs" />
     <Compile Include="Transports\EventStore\IRegisterProjections.cs" />
     <Compile Include="Transports\EventStore\ReceiverSinkProjectionCreator.cs" />
@@ -106,9 +110,11 @@
     <Compile Include="Transports\EventStore\Serializers\Json\Internal\MessageContractResolver.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\Internal\MessageSerializationBinder.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\Internal\XContainerConverter.cs" />
+    <Compile Include="Transports\EventStore\Serializers\Json\Json.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\JsonNoBomMessageSerializer.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\JsonMessageSerializerBase.cs" />
     <Compile Include="StringExtensions.cs" />
+    <Compile Include="Transports\EventStore\Topology.cs" />
     <Compile Include="Transports\EventStore\TransactionalModeRouterProjectionCreator.cs" />
     <Compile Include="Transports\EventStore\SubscriptionManager.cs" />
     <Compile Include="Transports\EventStore\MessagePublisher.cs" />

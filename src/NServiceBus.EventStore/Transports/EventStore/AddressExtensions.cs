@@ -29,12 +29,16 @@
 
         public static string GetReceiveAddressFrom(this Address address, Address sourceAddress)
         {
+            if (address.Equals(sourceAddress))
+            {
+                return "in_" + address.Queue + "-local";
+            }
             return "in_" + address.Queue + "-" + sourceAddress.Queue;
         }
-
-        public static string GetFinalOutgoingQueue(this Address address)
+        
+        public static string GetReceiveAddressFor(this Address address, string source)
         {
-            return address.Queue + "_out";
+            return "in_" + address.Queue + "-" + source;
         }
 
         public static string GetFinalIncomingQueue(this Address address)

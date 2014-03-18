@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Utils;
 using System.Linq;
+using NServiceBus.Transports.EventStore.Serializers.Json;
 using NServiceBus.Unicast.Transport;
 
 namespace NServiceBus.Transports.EventStore
@@ -11,6 +12,10 @@ namespace NServiceBus.Transports.EventStore
     {
         public static TransportMessage ToTransportMessage(this ResolvedEvent evnt)
         {
+            if (evnt.Event.EventType.StartsWith("$"))
+            {
+                return null;
+            }
             var metadata = evnt.Event.Metadata.ParseJson<EventStoreMessageMetadata>();
             var headers = metadata.Headers.ToDictionary(x => x.Key.ToPascalCase(), x => x.Value);
             var transportMessage = new TransportMessage(metadata.MessageId, headers)
@@ -33,7 +38,7 @@ namespace NServiceBus.Transports.EventStore
             return ToEventData(transportMessage, metadata);
         }
 
-        public static EventData ToEventEventData(this TransportMessage transportMessage, IEnumerable<Type> eventTypes)
+        public static EventData ToEventEventData(this TransportMessage transportMessage)
         {
             return ToEventData(transportMessage, new EventStoreMessageMetadata());
         }

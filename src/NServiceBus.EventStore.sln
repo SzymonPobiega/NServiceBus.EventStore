@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore", "N
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore.Tests", "NServiceBus.EventStore.Tests\NServiceBus.EventStore.Tests.csproj", "{8B773CFD-E0F8-402F-AABC-04580289C76A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore.AcceptanceTests", "NServiceBus.EventStore.AcceptanceTests\NServiceBus.EventStore.AcceptanceTests.csproj", "{485F7A18-430D-4FF4-8FB4-41757951B871}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +21,10 @@ Global
 		{8B773CFD-E0F8-402F-AABC-04580289C76A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B773CFD-E0F8-402F-AABC-04580289C76A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B773CFD-E0F8-402F-AABC-04580289C76A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{485F7A18-430D-4FF4-8FB4-41757951B871}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{485F7A18-430D-4FF4-8FB4-41757951B871}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{485F7A18-430D-4FF4-8FB4-41757951B871}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{485F7A18-430D-4FF4-8FB4-41757951B871}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

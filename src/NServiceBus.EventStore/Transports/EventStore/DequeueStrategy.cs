@@ -40,6 +40,10 @@ namespace NServiceBus.Transports.EventStore
         private void OnEvent(EventStorePersistentSubscription subscription, ResolvedEvent evnt)
         {
             var transportMessage = evnt.ToTransportMessage();
+            if (transportMessage == null) //system message
+            {
+                return;
+            }
             while (true) //First-level retry loop
             {
                 Exception processingError = null;

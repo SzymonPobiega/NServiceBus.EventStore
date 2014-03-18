@@ -1,44 +1,15 @@
 ﻿using System;
-using System.Threading;
+using System.Linq;
 using EventStore.ClientAPI.Common.Utils;
+using EventStore.Common.Utils;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Unicast.Transport;
-using NUnit.Framework;
+using NServiceBus.Unicast.Messages;
 
 namespace NServiceBus.AddIn.Tests.Integration
 {
     public abstract class SendAndReceiveTest : TransportIntegrationTest
     {
-        private ManualResetEventSlim Event;
-        protected int Count;
-        private int targetCount;
-        private DequeueStrategy dequeueStrategy;
-
-        [SetUp]
-        public void SendAndReceiveSetUp()
-        {
-            dequeueStrategy = new DequeueStrategy(new DefaultConnectionManager(ConnectionConfiguration));
-            Event = new ManualResetEventSlim();
-            dequeueStrategy.Init(ReceiverAddress, TransactionSettings.Default,
-                                 x =>
-                                     {
-                                         Assert.AreEqual(SenderAddress, x.ReplyToAddress);
-                                         Assert.AreEqual("correlation", x.CorrelationId);
-                                         x.Body.ParseJson<int>();
-                                         if (Interlocked.Increment(ref Count) == targetCount)
-                                         {
-                                             Event.Set();
-                                         }
-                                         return true;
-                                     },
-                                 (m, e) =>
-                                     {
-
-                                     });
-            dequeueStrategy.Start(1);
-        }
-
         protected MessageSender CreateSender()
         {
             var connectionManager = new DefaultConnectionManager(ConnectionConfiguration);
@@ -74,13 +45,6 @@ namespace NServiceBus.AddIn.Tests.Integration
                 };
         }
 
-        protected bool ExpectReceive(int messageNumber, TimeSpan timeout)
-        {
-            Event.Reset();
-            Count = 0;
-            targetCount = messageNumber;
-            return Event.Wait(timeout);
-        }
 
         protected void SendMessages(ISendMessages sender, int count)
         {
@@ -90,20 +54,22 @@ namespace NServiceBus.AddIn.Tests.Integration
             }
         }
 
-        protected void PublishMessage(IPublishMessages publisher, Type eventType, int i)
+        protected void PublishMessage(IPublishMessages publisher, Type eventType, int i, MessageMetadataRegistry metadataRegistry)
         {
-            publisher.Publish(GenerateTransportMessage(i, eventType.AssemblyQualifiedName), new[] { eventType });
+            var definition = metadataRegistry.GetMessageDefinition(eventType);
+            var enclosedMessageTypes = string.Join(";", definition.MessageHierarchy.Select(x => x.AssemblyQualifiedName));
+            publisher.Publish(GenerateTransportMessage(i, enclosedMessageTypes), new[] { eventType });
         }
 
-        private TransportMessage GenerateTransportMessage(int i, string messagetype)
+        private TransportMessage GenerateTransportMessage(int number, string messageTypes)
         {
             var message = new TransportMessage()
                 {
                     ReplyToAddress = SenderAddress,
                     CorrelationId = "correlation",
-                    Body = i.ToJsonBytes()
+                    Body = number.ToJsonBytes()
                 };
-            message.Headers[Headers.EnclosedMessageTypes] = messagetype;
+            message.Headers[Headers.EnclosedMessageTypes] = messageTypes;
             message.Headers[Headers.ContentType] = ContentTypes.Json;
             return message;
         }  

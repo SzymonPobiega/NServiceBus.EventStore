@@ -7,7 +7,7 @@ namespace NServiceBus
         public EventStore()
         {
             HasNativePubSubSupport = true;
-            HasSupportForCentralizedPubSub = false;
+            HasSupportForCentralizedPubSub = true;
         }
     }
 }

@@ -14,7 +14,7 @@ namespace NServiceBus.AddIn.Tests.Integration
             {
                 for (var i = 0; i < count; i++)
                 {
-                    PublishMessage(publisher, eventType, i);
+                    PublishMessage(publisher, eventType, i, MetadataRegistry);
                 }
                 tx.Complete();
             }

@@ -24,7 +24,7 @@ namespace NServiceBus.Transports.EventStore
 
         public bool Publish(TransportMessage message, IEnumerable<Type> eventTypes)
         {
-            var eventData = message.ToEventEventData(eventTypes);
+            var eventData = message.ToEventEventData();
 
             if (eventSourcedUnitOfWork.IsInitialized)
             {
@@ -36,7 +36,7 @@ namespace NServiceBus.Transports.EventStore
             }
             else
             {
-                connectionManager.GetConnection().AppendToStream(EndpointAddress.GetFinalOutgoingQueue(), ExpectedVersion.Any, eventData);
+                connectionManager.GetConnection().AppendToStream(EndpointAddress.GetIntermediateOutgoingQueue(), ExpectedVersion.Any, eventData);
             }
             return true;
         }

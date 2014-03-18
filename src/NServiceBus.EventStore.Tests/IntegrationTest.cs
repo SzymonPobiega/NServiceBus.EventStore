@@ -16,7 +16,7 @@ namespace NServiceBus.AddIn.Tests
 {
     public abstract class IntegrationTest
     {
-        private bool UseExternalEventStore = true;
+        private bool UseExternalEventStore = false;
 
         protected readonly UserCredentials AdminCredentials = new UserCredentials(SystemUsers.Admin, SystemUsers.DefaultAdminPassword);
 
@@ -33,7 +33,8 @@ namespace NServiceBus.AddIn.Tests
             if (!UseExternalEventStore)
             {
                 var projections = new ProjectionsSubsystem(1, RunProjections.All);
-                Node = new MiniNode(PathName, skipInitializeStandardUsersCheck: false, inMemDb:true, subsystems: new ISubsystem[] { projections });
+                Console.WriteLine("Usign data directory {0}",PathName);
+                Node = new MiniNode(PathName, skipInitializeStandardUsersCheck: false, inMemDb:true, tcpPort:45060, httpPort:45062, subsystems: new ISubsystem[] { projections });
                 Node.Start();
                 TcpEndPoint = Node.TcpEndPoint;
                 HttpEndPoint = Node.HttpEndPoint;
@@ -52,6 +53,7 @@ namespace NServiceBus.AddIn.Tests
         {
             if (!UseExternalEventStore)
             {
+                Console.WriteLine("Shutting down");
                 Node.Shutdown();
             }
         }

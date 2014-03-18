@@ -8,7 +8,10 @@
 		if (typeof e.metadata.destinationComponent !== 'undefined') {{
 			linkTo('in_'+e.metadata.destinationComponent+'-{1}', e);
 		}} else {{
-			emit('{2}', e.eventType, e.data, e.metadata);
+			var atomicTypes = e.eventType.split(';');
+		    for (var i = 0; i < atomicTypes.length; i++) {{
+			    emit('events-'+atomicTypes[i]+'_{1}', atomicTypes[i], e.data, e.metadata);
+		    }}
 		}}		
 	}}
 }})";
@@ -21,8 +24,7 @@
         {
             return string.Format(RouterProjectionQueryTemplate,
                                              address.GetIntermediateOutgoingQueue(),
-                                             address.GetComponentName(),
-                                             address.GetFinalOutgoingQueue());
+                                             address.GetComponentName());
         } 
     }
 }

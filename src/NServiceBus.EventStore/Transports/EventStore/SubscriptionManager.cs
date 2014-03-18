@@ -12,17 +12,16 @@ namespace NServiceBus.Transports.EventStore
         const string ProjectionTemplate = @"options({{
     reorderEvents: false
 }});
-fromStreams([{0}])
+fromCategory('events')
 .when({{
 {1}
 }})";
 
-        private const string EventTemplate = @"'{0}'/*{1}*/: function (s, e) {{
+        private const string EventTemplate = @"'{0}': function (s, e) {{
         linkTo('{1}',e);
     }}";
 
-        private static readonly Regex streamsExpression = new Regex(@"fromStreams\(\[([^)]+)\]\)", RegexOptions.Compiled);
-        private static readonly Regex typesExpression = new Regex(@"'([^']+)'/\*([^*]+)\*/: function \(s, e\)", RegexOptions.Compiled);
+        private static readonly Regex typesExpression = new Regex(@"'([^']+)': function \(s, e\)", RegexOptions.Compiled);
 
         public Address EndpointAddress { get; set; }
 
@@ -37,55 +36,50 @@ fromStreams([{0}])
 
         public void Subscribe(Type eventType, Address publisherAddress)
         {
-            var publisherOutgoingQueue = publisherAddress.GetFinalOutgoingQueue();
+            try
+            {
+                DoSubscribe(eventType);
+            }
+            catch (Exception)
+            {
+                //Try once again
+                DoSubscribe(eventType);
+            }
+        }
+
+        private void DoSubscribe(Type eventType)
+        {
             var projectionManager = connectionManager.GetProjectionManager();
             var projectionName = EndpointAddress.GetSubscriptionProjectionName();
-            List<string> streams;
-            List<Tuple<string, string>> types;
-            LoadAndParseQuery(projectionManager, projectionName, out streams, out types);
-            if (!streams.Contains(publisherOutgoingQueue))
-            {
-                streams.Add(publisherOutgoingQueue);
-            }
-            var metadata = metadataRegistry.GetMessageDefinition(eventType);
-            foreach (var type in metadata.MessageHierarchy)
-            {
-                var typeName = type.AssemblyQualifiedName;
-                var typeAndStream = Tuple.Create(typeName, EndpointAddress.GetReceiveAddressFrom(publisherAddress));
-                if (!types.Contains(typeAndStream))
-                {
-                    types.Add(typeAndStream);
-                }
-            }
-            CreateOrUpdateQuery(projectionManager, projectionName, streams, types);
+            var types = LoadAndParseQuery(projectionManager, projectionName);
+
+            var typeName = FormatTypeName(eventType);
+            types.Add(typeName);
+            CreateOrUpdateQuery(projectionManager, projectionName, types);
+        }
+
+        private static string FormatTypeName(Type eventType)
+        {
+            return eventType.AssemblyQualifiedName;
         }
 
         public void Unsubscribe(Type eventType, Address publisherAddress)
         {
-            var publisherOutgoingQueue = publisherAddress.GetFinalOutgoingQueue();
             var projectionManager = connectionManager.GetProjectionManager();
             var projectionName = EndpointAddress.GetSubscriptionProjectionName();
-            List<string> streams;
-            List<Tuple<string, string>> types;
-            LoadAndParseQuery(projectionManager, projectionName, out streams, out types);
-            var receiveAddress = EndpointAddress.GetReceiveAddressFrom(publisherAddress);
+            var types = LoadAndParseQuery(projectionManager, projectionName);
             var metadata = metadataRegistry.GetMessageDefinition(eventType);
             foreach (var type in metadata.MessageHierarchy)
             {
-                var typeName = type.AssemblyQualifiedName;
-                var typeAndStream = Tuple.Create(typeName, receiveAddress);
-                types.Remove(typeAndStream);
-                if (types.All(x => x.Item2 != receiveAddress))
-                {
-                    streams.Remove(publisherOutgoingQueue);
-                }
+                var typeName = FormatTypeName(type);
+                types.Remove(typeName);
             }
-            CreateOrUpdateQuery(projectionManager, projectionName, streams, types);
+            CreateOrUpdateQuery(projectionManager, projectionName, types);
         }
 
-        private void CreateOrUpdateQuery(IProjectionsManager projectionManager, string projectionName, IList<string> streams, IList<Tuple<string, string>> types)
+        private void CreateOrUpdateQuery(IProjectionsManager projectionManager, string projectionName, IList<string> types)
         {
-            var newQuery = RenderQuery(streams, types);
+            var newQuery = RenderQuery(types);
             if (!projectionManager.Exists(projectionName))
             {
                 if (newQuery != null)
@@ -98,7 +92,6 @@ fromStreams([{0}])
                 if (newQuery != null)
                 {
                     projectionManager.UpdateQuery(projectionName, newQuery);
-                    //projectionManager.Enable(projectionName);
                 }
                 else
                 {
@@ -107,39 +100,30 @@ fromStreams([{0}])
             }
         }
 
-        private string RenderQuery(IList<string> streams, IList<Tuple<string, string>> types)
+        private string RenderQuery(IList<string> types)
         {
-            if (streams.Count == 0 && types.Count == 0)
+            if (types.Count == 0 && types.Count == 0)
             {
                 return null;
             }
-            var streamsQuoted = streams.Select(x => "'" + x + "'");
+            var streamsQuoted = types.Select(type => "'" + "events-" + type + "'");
             var newStreamsString = string.Join(",", streamsQuoted);
-            var typesString = string.Join(","+Environment.NewLine,
-                                          types.Select(
-                                              x => string.Format(EventTemplate, x.Item1, x.Item2)));
+            var typesString = string.Join("," + Environment.NewLine, 
+                types.Select(type => string.Format(EventTemplate, type, EndpointAddress.GetReceiveAddressFor(type))));
             var newQuery = string.Format(ProjectionTemplate, newStreamsString, typesString);
             return newQuery;
         }
 
-        private void LoadAndParseQuery(IProjectionsManager projectionManager, string projectionName, out List<string> streams, out List<Tuple<string, string>> types)
+        private IList<string> LoadAndParseQuery(IProjectionsManager projectionManager, string projectionName)
         {
             if (projectionManager.Exists(projectionName))
             {
                 var query = projectionManager.GetQuery(projectionName);
-                var streamsString = streamsExpression.Match(query).Groups[1].Value;
-                streams = streamsString
-                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => x.Trim(' ', '\''))
-                    .ToList();
                 var matches = typesExpression.Matches(query);
-                types = matches.Cast<Match>().Select(m => Tuple.Create(m.Groups[1].Value, m.Groups[2].Value)).ToList();
+                var result = matches.Cast<Match>().Select(m => m.Groups[1].Value).ToList();
+                return result;
             }
-            else
-            {
-                streams = new List<string>();
-                types = new List<Tuple<string, string>>();
-            }
+            return new List<string>();
         }
     }
 }
