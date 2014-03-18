@@ -5,7 +5,7 @@
     <title>NServiceBus EventStore</title>
     <version>4.0.0-alpha0</version>
     <authors>NServiceBus Ltd</authors>
-    <owners>Udi Dahan, Andreas Ohlund, John Simons</owners>
+    <owners>Udi Dahan, Andreas Ohlund, Szymon Pobiega</owners>
     <licenseUrl>http://particular.net/LicenseAgreement</licenseUrl>
     <projectUrl>http://particular.net/</projectUrl>
     <iconUrl>http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</iconUrl>
@@ -15,12 +15,11 @@
     </releaseNotes>
     <copyright>Copyright 2010-2013 NServiceBus. All rights reserved</copyright>
     <tags>nservicebus eventstore geteventstore servicebus msmq cqrs publish subscribe</tags>
-    <dependencies>
-      <dependency id="NServiceBus" />
-      <dependency id="NServiceBus.Interfaces" />
+    <dependencies>      
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\binaries\NServiceBus.EventStore.dll" target="lib\net40" />        
+    <file src="..\..\binaries\NServiceBus.EventStore.dll" target="lib\net40" /> 
+	<file src="..\..\src\NServiceBus.EventStore\**\*.cs" target="src\NServiceBus.EventStore" />	
   </files>
 </package>
