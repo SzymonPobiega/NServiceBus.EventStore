@@ -85,7 +85,7 @@
     <Compile Include="Transports\EventStore\Config\ConnectionConfiguration.cs" />
     <Compile Include="Transports\EventStore\Config\ConnectionConfigurationBuilder.cs" />
     <Compile Include="Transports\EventStore\Config\ConnectionStringParser.cs" />
-    <Compile Include="Transports\EventStore\Config\EventStore.cs" />
+    <Compile Include="Transports\EventStore\Config\EventStoreTransportDefinition.cs" />
     <Compile Include="Transports\EventStore\Config\EventStoreSettings.cs" />
     <Compile Include="Transports\EventStore\Config\EventStoreTransport.cs" />
     <Compile Include="Transports\EventStore\Config\IConnectionConfiguration.cs" />

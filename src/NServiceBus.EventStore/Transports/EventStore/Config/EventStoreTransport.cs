@@ -6,7 +6,7 @@ using NServiceBus.Transports.EventStore.Config;
 
 namespace NServiceBus.Features
 {
-    public class EventStoreTransport : ConfigureTransport<EventStore>
+    public class EventStoreTransport : ConfigureTransport<EventStoreTransportDefinition>
     {
         public override void Initialize()
         {

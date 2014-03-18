@@ -2,9 +2,9 @@
 
 namespace NServiceBus
 {
-    public class EventStore : TransportDefinition
+    public class EventStoreTransportDefinition : TransportDefinition
     {
-        public EventStore()
+        public EventStoreTransportDefinition()
         {
             HasNativePubSubSupport = true;
             HasSupportForCentralizedPubSub = true;
