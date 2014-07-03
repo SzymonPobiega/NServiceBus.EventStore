@@ -17,13 +17,13 @@
 }})";
         protected override string GetName(Address address)
         {
-            return address.GetRouterProjectionName();
+            return address.RouterProjectionName();
         }
 
         protected override string GetQuery(Address address)
         {
             return string.Format(RouterProjectionQueryTemplate,
-                                             address.GetIntermediateOutgoingQueue(),
+                                             address.OutgoingStream(),
                                              address.GetComponentName());
         } 
     }

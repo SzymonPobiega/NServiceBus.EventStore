@@ -36,7 +36,7 @@ namespace NServiceBus.Transports.EventStore
             }
             else
             {
-                connectionManager.GetConnection().AppendToStream(EndpointAddress.GetIntermediateOutgoingQueue(), ExpectedVersion.Any, eventData);
+                connectionManager.GetConnection().AppendToStream(EndpointAddress.OutgoingStream(), ExpectedVersion.Any, eventData);
             }
             return true;
         }

@@ -17,7 +17,7 @@
 }})";
         protected override string GetName(Address address)
         {
-            return address.GetEventSorucedRouterProjectionName();
+            return address.EventSorucedRouterProjectionName();
         }
 
         protected override string GetQuery(Address address)

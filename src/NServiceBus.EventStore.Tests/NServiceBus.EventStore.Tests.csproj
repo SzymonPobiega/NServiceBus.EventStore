@@ -95,7 +95,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IntegrationTest.cs" />
-    <Compile Include="SagaPersistence\Integration\SagaIndexerTests.cs" />
     <Compile Include="SagaPersistence\Integration\SagaPersisterTests.cs" />
     <Compile Include="SagaPersistence\Integration\TestSaga.cs" />
     <Compile Include="Transport\Integration\NonTransactionalPolymorphicPublishTests.cs" />

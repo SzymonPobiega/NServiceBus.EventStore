@@ -2,11 +2,7 @@
 {
     public static class AddressExtensions
     {
-        public static string GetIntermediateOutgoingQueue(this Address address)
-        {
-            return address.Queue + "_intermediate_out";
-        }
-
+        
         public static string GetAggregateStreamCategory(this Address address)
         {
             return "ag_" + address.Queue;
@@ -17,53 +13,38 @@
             return "ag_" + address.Queue + "-" + aggregateId;
         }
 
+        public static string OutgoingStream(this Address address)
+        {
+            return address.Queue + "_intermediate_out";
+        }
+
         public static string GetComponentName(this Address address)
         {
             return address.Queue;
         }
 
-        public static string GetReceiveStreamCategory(this Address address)
+        public static string ReceiveStreamCategory(this Address address)
         {
             return "in_" + address.Queue;
         }
 
-        public static string GetReceiveAddressFrom(this Address address, Address sourceAddress)
+        public static string SubscriberReceiveStreamFrom(this Address address, Address sourceAddress)
         {
             if (address.Equals(sourceAddress))
             {
                 return "in_" + address.Queue + "-local";
             }
-            return "in_" + address.Queue + "-" + sourceAddress.Queue;
-        }
-        
-        public static string GetReceiveAddressFor(this Address address, string source)
-        {
-            return "in_" + address.Queue + "-" + source;
+            return ReceiveStreamCategory(address) + "-" + sourceAddress.Queue;
         }
 
-        public static string GetFinalIncomingQueue(this Address address)
+        public static string SubscriberReceiveStreamFrom(this Address address, string source)
+        {
+            return ReceiveStreamCategory(address) + "-" + source;
+        }
+
+        public static string IncomingQueue(this Address address)
         {
             return address.Queue + "_in";
-        }
-
-        public static string GetReceiverSinkProjectionName(this Address address)
-        {
-            return address.Queue + "_receiver_sink";
-        }
-
-        public static string GetSubscriptionProjectionName(this Address address)
-        {
-            return address.Queue + "_subscriptions";
-        }
-
-        public static string GetRouterProjectionName(this Address address)
-        {
-            return address.Queue + "_router";
-        }
-
-        public static string GetEventSorucedRouterProjectionName(this Address address)
-        {
-            return address.Queue + "_es_router";
         }
     }
 }

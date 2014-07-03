@@ -10,14 +10,14 @@ namespace NServiceBus.Transports.EventStore
 }})";
         protected override string GetName(Address address)
         {
-            return address.GetReceiverSinkProjectionName();
+            return address.ReceiverProjectionName();
         }
 
         protected override string GetQuery(Address address)
         {
             return string.Format(RouterProjectionQueryTemplate,
-                                 address.GetReceiveStreamCategory(),
-                                 address.GetFinalIncomingQueue());
+                                 address.ReceiveStreamCategory(),
+                                 address.IncomingQueue());
         }
     }
 }

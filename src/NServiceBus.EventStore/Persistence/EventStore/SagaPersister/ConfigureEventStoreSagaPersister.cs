@@ -11,7 +11,6 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
                 config.EventStore();
             }
             config.Configurer.ConfigureComponent<EventStoreSagaPersister>(DependencyLifecycle.InstancePerCall);
-            config.Configurer.ConfigureComponent<EventStoreSagaIndexer>(DependencyLifecycle.InstancePerCall);
             return config;
         }
     }

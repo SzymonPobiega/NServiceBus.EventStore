@@ -75,9 +75,9 @@
   <ItemGroup>
     <Compile Include="EventStoreConfigurator.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\ConfigureEventStoreSagaPersister.cs" />
-    <Compile Include="Persistence\EventStore\SagaPersister\EventStoreSagaIndexer.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\EventStoreSagaPersister.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\SagaIndexerProjectionCreator.cs" />
+    <Compile Include="Persistence\EventStore\SagaPersister\SagaIndexEvent.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\SagaVersion.cs" />
     <Compile Include="Persistence\EventStore\TimeoutPersister\EventStoreTimeoutPersister.cs" />
     <Compile Include="Transports\EventStore\AddressExtensions.cs" />
@@ -94,6 +94,7 @@
     <Compile Include="NoopLogger.cs" />
     <Compile Include="Transports\EventStore\IEventSourcedUnitOfWork.cs" />
     <Compile Include="Transports\EventStore\IRegisterProjections.cs" />
+    <Compile Include="Transports\EventStore\ProjectionNameAddressExtensions.cs" />
     <Compile Include="Transports\EventStore\ReceiverSinkProjectionCreator.cs" />
     <Compile Include="Transports\EventStore\Projections\DefaultProjectionsManager.cs" />
     <Compile Include="Transports\EventStore\DefaultConnectionManager.cs" />

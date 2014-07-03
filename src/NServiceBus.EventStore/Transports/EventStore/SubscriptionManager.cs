@@ -50,7 +50,7 @@ fromCategory('events')
         private void DoSubscribe(Type eventType)
         {
             var projectionManager = connectionManager.GetProjectionManager();
-            var projectionName = EndpointAddress.GetSubscriptionProjectionName();
+            var projectionName = EndpointAddress.SubscriptionProjectionName();
             var types = LoadAndParseQuery(projectionManager, projectionName);
 
             var typeName = FormatTypeName(eventType);
@@ -66,7 +66,7 @@ fromCategory('events')
         public void Unsubscribe(Type eventType, Address publisherAddress)
         {
             var projectionManager = connectionManager.GetProjectionManager();
-            var projectionName = EndpointAddress.GetSubscriptionProjectionName();
+            var projectionName = EndpointAddress.SubscriptionProjectionName();
             var types = LoadAndParseQuery(projectionManager, projectionName);
             var metadata = metadataRegistry.GetMessageDefinition(eventType);
             foreach (var type in metadata.MessageHierarchy)
@@ -109,7 +109,7 @@ fromCategory('events')
             var streamsQuoted = types.Select(type => "'" + "events-" + type + "'");
             var newStreamsString = string.Join(",", streamsQuoted);
             var typesString = string.Join("," + Environment.NewLine, 
-                types.Select(type => string.Format(EventTemplate, type, EndpointAddress.GetReceiveAddressFor(type))));
+                types.Select(type => string.Format(EventTemplate, type, EndpointAddress.SubscriberReceiveStreamFrom(type))));
             var newQuery = string.Format(ProjectionTemplate, newStreamsString, typesString);
             return newQuery;
         }
