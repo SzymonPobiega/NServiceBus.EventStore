@@ -3,16 +3,16 @@ using System.IO;
 using System.Text;
 using NServiceBus.MessageInterfaces;
 using Newtonsoft.Json;
-using Formatting = Newtonsoft.Json.Formatting;
+using NServiceBus.Serializers.Json;
 
 namespace NServiceBus.Transports.EventStore.Serializers.Json
 {
     /// <summary>
     /// JSON message serializer.
     /// </summary>
-    public class JsonNoBomMessageSerializer : JsonMessageSerializerBase
+    public class JsonNoBomMessageSerializer : JsonMessageSerializer
     {
-        public static readonly UTF8Encoding UTF8NoBom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+        public static readonly UTF8Encoding UTF8NoBom = new UTF8Encoding(false);
 
         /// <summary>
         /// Constructor.
@@ -24,36 +24,9 @@ namespace NServiceBus.Transports.EventStore.Serializers.Json
         {
         }
 
-        protected override JsonWriter CreateJsonWriter(Stream stream)
-        {
-            var streamWriter = new StreamWriter(stream, UTF8NoBom);
-            return new JsonTextWriter(streamWriter) {Formatting = Formatting.None};
-        }
-
         protected override JsonReader CreateJsonReader(Stream stream)
         {
-            var streamReader = new StreamReader(stream, UTF8NoBom);
-            return new JsonTextReader(streamReader);
-        }
-
-        public T DeserializeObject<T>(string value)
-        {
-            return JsonConvert.DeserializeObject<T>(value);
-        }
-
-        public object DeserializeObject(string value, Type type)
-        {
-            return JsonConvert.DeserializeObject(value, type);
-        }
-
-        public string SerializeObject(object value)
-        {
-            return JsonConvert.SerializeObject(value);
-        }
-
-        protected override string GetContentType()
-        {
-            return ContentTypes.Json;
+            return base.CreateJsonReader(stream);
         }
     }
 }
