@@ -16,7 +16,7 @@ namespace NServiceBus.Transports.EventStore
             connection = new Lazy<IEventStoreConnection>(() =>
                 {
                     var conn = this.connectionConfiguration.CreateConnection();
-                    conn.Connect();
+                    conn.ConnectAsync().Wait();
                     return conn;
                 }, true);
         }

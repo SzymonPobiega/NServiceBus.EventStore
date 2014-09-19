@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
-using EventStore.ClientAPI.Common.Utils;
-using EventStore.Common.Utils;
+using NServiceBus.EventStore.Tests;
+using NServiceBus.Serializers.Json;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
+using NServiceBus.Transports.EventStore.Serializers.Json;
 using NServiceBus.Unicast.Messages;
 
 namespace NServiceBus.AddIn.Tests.Integration
@@ -13,18 +14,24 @@ namespace NServiceBus.AddIn.Tests.Integration
         protected MessageSender CreateSender()
         {
             var connectionManager = new DefaultConnectionManager(ConnectionConfiguration);
-            var transactionalUnitOfWork = new TransactionalUnitOfWork(connectionManager)
-                {
-                    EndpointAddress = SenderAddress
-                };
             var eventSourcedUnitOfWork = new EventSourcedUnitOfWork(connectionManager)
                 {
                     EndpointAddress = SenderAddress
                 };
+            return CreateSender(eventSourcedUnitOfWork);
+        }
+
+        protected MessageSender CreateSender(EventSourcedUnitOfWork eventSourcedUnitOfWork)
+        {
+            var connectionManager = new DefaultConnectionManager(ConnectionConfiguration);
+            var transactionalUnitOfWork = new TransactionalUnitOfWork(connectionManager)
+            {
+                EndpointAddress = SenderAddress
+            };
             return new MessageSender(transactionalUnitOfWork, eventSourcedUnitOfWork, connectionManager)
-                {
-                    EndpointAddress = SenderAddress
-                };
+            {
+                EndpointAddress = SenderAddress
+            };
         }
 
         protected MessagePublisher CreatePublisher(Address sourceAddress)
@@ -67,7 +74,7 @@ namespace NServiceBus.AddIn.Tests.Integration
                 {
                     ReplyToAddress = SenderAddress,
                     CorrelationId = "correlation",
-                    Body = number.ToJsonBytes()
+                    Body = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes(string.Format("{{\"number\" : {0}}}",number))
                 };
             message.Headers[Headers.EnclosedMessageTypes] = messageTypes;
             message.Headers[Headers.ContentType] = ContentTypes.Json;

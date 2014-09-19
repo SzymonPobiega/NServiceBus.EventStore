@@ -26,41 +26,46 @@ namespace NServiceBus.Transports.EventStore.Projections
 
         public string GetQuery(string projectionName)
         {            
-            return projectionsManager.GetQuery(projectionName, userCredentials);
+            return projectionsManager.GetQueryAsync(projectionName, userCredentials).Result;
         }
 
         public void CreateContinuous(string projectionName, string query)
         {
-            projectionsManager.CreateContinuous(projectionName, query, userCredentials);
+            projectionsManager.CreateContinuousAsync(projectionName, query, userCredentials).Wait();
         }
 
         public void UpdateQuery(string projectionName, string newQuery)
         {
-            projectionsManager.UpdateQuery(projectionName, newQuery, userCredentials);
+            projectionsManager.UpdateQueryAsync(projectionName, newQuery, userCredentials).Wait();
         }
 
         public void Delete(string projectionName)
         {
-            projectionsManager.Delete(projectionName, userCredentials);
+            projectionsManager.DeleteAsync(projectionName, userCredentials).Wait();
         }
 
         public ProjectionInfo GetStatus(string projectionName)
         {
-            var rawStatus = projectionsManager.GetStatus(projectionName, userCredentials);
+            var rawStatus = projectionsManager.GetStatusAsync(projectionName, userCredentials).Result;
             return rawStatus.ParseJson<ProjectionInfo>();
         }
 
         public IList<ProjectionInfo> List()
         {
-            var rawList = projectionsManager.ListAll(userCredentials);
+            var rawList = projectionsManager.ListAllAsync(userCredentials).Result;
             return rawList.ParseJson<ProjectionList>().Projections;
+        }
+
+        public void Stop(string projectionName)
+        {
+            projectionsManager.DisableAsync(projectionName, userCredentials).Wait();
         }
 
         public void Enable(string projectionName)
         {
             try
             {
-                projectionsManager.Enable(projectionName, userCredentials);
+                projectionsManager.EnableAsync(projectionName, userCredentials).Wait();
             }
             catch (Exception)
             {

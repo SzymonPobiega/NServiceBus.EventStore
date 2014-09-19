@@ -31,7 +31,8 @@ namespace NServiceBus.Transports.EventStore
             else
             {
                 connectionManager.GetConnection()
-                             .AppendToStream(address.SubscriberReceiveStreamFrom(EndpointAddress), ExpectedVersion.Any, message.ToDirectCommandEventData(address));
+                             .AppendToStreamAsync(address.SubscriberReceiveStreamFrom(EndpointAddress), ExpectedVersion.Any, message.ToDirectCommandEventData(address))
+                             .Wait();
             }
         }
     }

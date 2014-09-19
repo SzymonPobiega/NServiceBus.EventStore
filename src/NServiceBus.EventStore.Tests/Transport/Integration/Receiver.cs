@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using EventStore.ClientAPI.Common.Utils;
-using EventStore.Common.Utils;
+using NServiceBus.EventStore.Tests;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Transports.EventStore.Config;
 using NServiceBus.Unicast.Transport;
@@ -31,7 +31,7 @@ namespace NServiceBus.AddIn.Tests.Integration
             dequeueStrategy.Init(address, TransactionSettings.Default,
                                  x =>
                                      {
-                                         x.Body.ParseJson<int>();
+                                         //x.Body.ParseJson<int>();
                                          if (Interlocked.Increment(ref Count) == targetCount)
                                          {
                                              Event.Set();

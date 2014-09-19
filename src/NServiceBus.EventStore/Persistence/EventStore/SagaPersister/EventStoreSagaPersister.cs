@@ -44,14 +44,14 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
             var indexStream = BuildIndexStreamName(sagaType, property, value);
             var payload = new SagaIndexEvent(sagaId).ToJsonBytes();
             var eventData = new EventData(Guid.NewGuid(), SagaIndexEventType, true, payload, new byte[0]);
-            connectionManager.GetConnection().AppendToStream(indexStream, ExpectedVersion.NoStream, eventData);
+            connectionManager.GetConnection().AppendToStreamAsync(indexStream, ExpectedVersion.NoStream, eventData).Wait();
         }
 
         private void SaveData(IContainSagaData saga)
         {
             var streamName = BuildSagaStreamName(saga.GetType(), saga.Id);
             var eventData = new EventData(Guid.NewGuid(), SagaDataEventType, true, saga.ToJsonBytes(), new byte[0]);
-            connectionManager.GetConnection().AppendToStream(streamName, ExpectedVersion.NoStream, eventData);
+            connectionManager.GetConnection().AppendToStreamAsync(streamName, ExpectedVersion.NoStream, eventData).Wait();
         }
 
         public void Update(IContainSagaData saga)
@@ -66,7 +66,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
                                       ? versionInfo.Version
                                       : ExpectedVersion.Any;
 
-            connectionManager.GetConnection().AppendToStream(streamName, expectedVersion, eventData);
+            connectionManager.GetConnection().AppendToStreamAsync(streamName, expectedVersion, eventData).Wait();
         }
 
         public T Get<T>(Guid sagaId) where T : IContainSagaData
@@ -77,7 +77,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
 
         private T GetFromStream<T>(string streamName) where T : IContainSagaData
         {
-            var lastVersion = connectionManager.GetConnection().ReadStreamEventsBackward(streamName, -1, 1, true);
+            var lastVersion = connectionManager.GetConnection().ReadStreamEventsBackwardAsync(streamName, -1, 1, true).Result;
             if (lastVersion.Status == SliceReadStatus.Success)
             {
                 var evnt = lastVersion.Events[0].Event;
@@ -107,7 +107,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
         public void Complete(IContainSagaData saga)
         {
             var streamName = BuildSagaStreamName(saga.GetType(), saga.Id);
-            connectionManager.GetConnection().DeleteStream(streamName, ExpectedVersion.Any,true);
+            connectionManager.GetConnection().DeleteStreamAsync(streamName, ExpectedVersion.Any,true).Wait();
         }
 
         private static string BuildSagaStreamName(Type sagaType, Guid sagaId)

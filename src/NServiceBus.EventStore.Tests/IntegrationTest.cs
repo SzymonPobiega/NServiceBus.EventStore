@@ -32,7 +32,7 @@ namespace NServiceBus.AddIn.Tests
         {
             if (!UseExternalEventStore)
             {
-                var projections = new ProjectionsSubsystem(1, RunProjections.All);
+                var projections = new ProjectionsSubsystem(1, ProjectionType.All);
                 Console.WriteLine("Usign data directory {0}",PathName);
                 Node = new MiniNode(PathName, skipInitializeStandardUsersCheck: false, inMemDb:true, tcpPort:45060, httpPort:45062, subsystems: new ISubsystem[] { projections });
                 Node.Start();

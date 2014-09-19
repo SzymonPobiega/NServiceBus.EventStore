@@ -7,12 +7,13 @@
     <ProjectGuid>{8B773CFD-E0F8-402F-AABC-04580289C76A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NServiceBus.AddIn.Tests</RootNamespace>
-    <AssemblyName>NServiceBus.AddIn.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <RootNamespace>NServiceBus.EventStore.Tests</RootNamespace>
+    <AssemblyName>NServiceBus.EventStore.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <RestorePackages>true</RestorePackages>
     <SolutionDir Condition="'$(SolutionDir)'=='' or '$(SolutionDir)'=='*Undefined*'">..\</SolutionDir>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -24,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <UseVSHostingProcess>false</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -34,55 +36,58 @@
     <WarningLevel>4</WarningLevel>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EventStore.BufferManagement">
-      <HintPath>..\lib\EventStore.BufferManagement.dll</HintPath>
+      <HintPath>..\..\lib\EventStore\EventStore.BufferManagement.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.ClientAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\EventStore.ClientAPI.dll</HintPath>
+    <Reference Include="EventStore.ClientAPI">
+      <HintPath>..\..\lib\EventStore\EventStore.ClientAPI.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Common, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\EventStore.Common.dll</HintPath>
+    <Reference Include="EventStore.Common">
+      <HintPath>..\..\lib\EventStore\EventStore.Common.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\EventStore.Core.dll</HintPath>
+    <Reference Include="EventStore.Core">
+      <HintPath>..\..\lib\EventStore\EventStore.Core.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Core.Tests, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\EventStore.Core.Tests.dll</HintPath>
+    <Reference Include="EventStore.Core.Tests">
+      <HintPath>..\..\lib\EventStore\EventStore.Core.Tests.dll</HintPath>
     </Reference>
-    <Reference Include="EventStore.Projections.Core, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\lib\EventStore.Projections.Core.dll</HintPath>
+    <Reference Include="EventStore.Projections.Core">
+      <HintPath>..\..\lib\EventStore\EventStore.Projections.Core.dll</HintPath>
     </Reference>
     <Reference Include="EventStore.Transport.Http">
-      <HintPath>..\lib\EventStore.Transport.Http.dll</HintPath>
+      <HintPath>..\..\lib\EventStore\EventStore.Transport.Http.dll</HintPath>
     </Reference>
     <Reference Include="EventStore.Transport.Tcp">
-      <HintPath>..\lib\EventStore.Transport.Tcp.dll</HintPath>
+      <HintPath>..\..\lib\EventStore\EventStore.Transport.Tcp.dll</HintPath>
     </Reference>
     <Reference Include="FluentAssertions">
       <HintPath>..\packages\FluentAssertions\lib\net40\FluentAssertions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\lib\EventStore\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
       <HintPath>..\packages\NLog\lib\net40\NLog.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus">
-      <HintPath>..\packages\NServiceBus.Interfaces\lib\net40\NServiceBus.dll</HintPath>
+      <HintPath>..\packages\NServiceBus.Interfaces.4.5.1\lib\net40\NServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NServiceBus.Core">
-      <HintPath>..\packages\NServiceBus\lib\net40\NServiceBus.Core.dll</HintPath>
+    <Reference Include="NServiceBus.Core, Version=4.5.0.0, Culture=neutral, PublicKeyToken=9fc386479f8a226c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\NServiceBus.4.5.1\lib\net40\NServiceBus.Core.dll</HintPath>
     </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit\lib\nunit.framework.dll</HintPath>
     </Reference>
+    <Reference Include="protobuf-net">
+      <HintPath>..\..\lib\EventStore\protobuf-net.dll</HintPath>
+    </Reference>
     <Reference Include="Rhino.Mocks">
-      <HintPath>..\packages\RhinoMocks\lib\net\Rhino.Mocks.dll</HintPath>
+      <HintPath>..\packages\RhinoMocks\lib\net40\Rhino.Mocks.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -97,6 +102,7 @@
     <Compile Include="IntegrationTest.cs" />
     <Compile Include="SagaPersistence\Integration\SagaPersisterTests.cs" />
     <Compile Include="SagaPersistence\Integration\TestSaga.cs" />
+    <Compile Include="Json.cs" />
     <Compile Include="Transport\Integration\NonTransactionalPolymorphicPublishTests.cs" />
     <Compile Include="Transport\Integration\PolymorphicPublishTest.cs" />
     <Compile Include="Transport\Integration\EventSourcedModeRouterProjectionCreatorTests.cs" />
@@ -121,40 +127,35 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\NServiceBus.EventStore\NServiceBus.EventStore.csproj">
-      <Project>{ba731749-22c7-4025-8a4d-465ae8e02e61}</Project>
-      <Name>NServiceBus.AddIn</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
     <None Include="ripple.dependencies.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="..\lib\js1.dll">
+    <Content Include="..\..\lib\EventStore\js1.dll">
       <Link>js1.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\lib\Prelude\1Prelude.js">
+    <Content Include="..\..\lib\EventStore\Prelude\1Prelude.js">
       <Link>Prelude\1Prelude.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\lib\Prelude\Modules.js">
+    <Content Include="..\..\lib\EventStore\Prelude\Modules.js">
       <Link>Prelude\Modules.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\lib\Prelude\ModulesExecuted.js">
+    <Content Include="..\..\lib\EventStore\Prelude\ModulesExecuted.js">
       <Link>Prelude\ModulesExecuted.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="..\lib\Prelude\Projections.js">
+    <Content Include="..\..\lib\EventStore\Prelude\Projections.js">
       <Link>Prelude\Projections.js</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\NServiceBus.EventStore\NServiceBus.EventStore.csproj">
+      <Project>{ba731749-22c7-4025-8a4d-465ae8e02e61}</Project>
+      <Name>NServiceBus.EventStore</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)..\BuildSupport\RippleRestoreTask.targets" />
 </Project>

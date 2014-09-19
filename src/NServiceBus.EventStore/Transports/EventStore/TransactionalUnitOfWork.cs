@@ -54,8 +54,8 @@ namespace NServiceBus.Transports.EventStore
             if (!messages.Any())
                 return;
 
-            var result = connectionManager.GetConnection()
-                .AppendToStream(EndpointAddress.OutgoingStream(), ExpectedVersion.Any, messages);
+            connectionManager.GetConnection()
+                .AppendToStreamAsync(EndpointAddress.OutgoingStream(), ExpectedVersion.Any, messages).Wait();
 
             OutstandingOperations.Clear();
         }

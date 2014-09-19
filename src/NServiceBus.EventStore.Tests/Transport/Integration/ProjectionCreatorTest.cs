@@ -1,4 +1,5 @@
-﻿using EventStore.ClientAPI;
+﻿using System;
+using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
@@ -20,7 +21,7 @@ namespace NServiceBus.AddIn.Tests.Integration
                 {
                     ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
                 };
-            var projectionManager = new DefaultProjectionsManager(new ProjectionsManager(new NoopLogger(), HttpEndPoint), AdminCredentials);
+            var projectionManager = new DefaultProjectionsManager(new ProjectionsManager(new NoopLogger(), HttpEndPoint, TimeSpan.FromSeconds(90)), AdminCredentials);
 
             //Act
             creator.RegisterProjectionsFor(new Address("comp1", "store1"), "account");

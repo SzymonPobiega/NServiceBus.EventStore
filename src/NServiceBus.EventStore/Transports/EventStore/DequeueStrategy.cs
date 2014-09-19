@@ -29,7 +29,24 @@ namespace NServiceBus.Transports.EventStore
         {
             var incomingQueue = endpointAddress.IncomingQueue();
             subscriptions = Enumerable.Range(0, maximumConcurrencyLevel)
-                .Select(x => connectionManager.GetConnection().ConnectToPersistentSubscription(GetSubscriptionId(), incomingQueue, true, OnEvent, SubscriptionDropped))
+                .Select(x =>
+                {
+                    try
+                    {
+                        return connectionManager.GetConnection()
+                        .ConnectToPersistentSubscription(GetSubscriptionId(), incomingQueue, OnEvent, SubscriptionDropped);
+                    }
+                    catch (Exception)
+                    {
+                        var result = connectionManager.GetConnection()
+                            .CreatePersistentSubscriptionAsync(incomingQueue, GetSubscriptionId(),
+                                PersistentSubscriptionSettingsBuilder.Create(), null)
+                            .Result;
+                        return connectionManager.GetConnection()
+                        .ConnectToPersistentSubscription(GetSubscriptionId(), incomingQueue, OnEvent, SubscriptionDropped);
+                    }
+                    
+                })
                 .ToList();
         }
 

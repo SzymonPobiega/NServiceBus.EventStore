@@ -29,11 +29,6 @@ namespace NServiceBus.Transports.EventStore.Config
                     new PropertyParser((p, b) => b.ConnectionSettings.SetReconnectionDelayTo(TimeSpan.Parse(p["receonnectionDelay"])), "receonnectionDelay"),
                     new PropertyParser((p, b) => b.ConnectionSettings.SetOperationTimeoutTo(TimeSpan.Parse(p["operationTimeout"])), "operationTimeout"),
                     new PropertyParser((p, b) => b.ConnectionSettings.UseSslConnection(p["sslHost"],p.ContainsKey("sslValidate")), "sslHost"),
-
-                    new PropertyParser((p, b) => b.ClusterSettings.SetClusterDns(p["clusterName"]), "clusterName"),
-                    new PropertyParser((p, b) => b.ClusterSettings.SetMaxDiscoverAttempts(int.Parse(p["maxDiscoverAttempts"])), "maxDiscoverAttempts"),
-                    new PropertyParser((p, b) => b.ClusterSettings.WithGossipTimeoutOf(TimeSpan.Parse(p["gossipTimeout"])), "gossipTimeout"),
-                    new PropertyParser((p, b) => b.ClusterSettings.SetGossipPort(int.Parse(p["gossipPort"])), "gossipPort"),
                 };
 
         public ConnectionConfiguration Parse(string connectionString)

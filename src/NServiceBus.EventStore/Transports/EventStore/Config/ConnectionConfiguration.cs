@@ -55,7 +55,7 @@ namespace NServiceBus.Transports.EventStore.Config
 
         public IProjectionsManager CreateProjectionsManager()
         {
-            return new DefaultProjectionsManager(new ProjectionsManager(new NoopLogger(), httpEndpoint), connectionSettings.DefaultUserCredentials);
+            return new DefaultProjectionsManager(new ProjectionsManager(new NoopLogger(), httpEndpoint, TimeSpan.FromSeconds(90)), connectionSettings.DefaultUserCredentials);
         }
     }
 }

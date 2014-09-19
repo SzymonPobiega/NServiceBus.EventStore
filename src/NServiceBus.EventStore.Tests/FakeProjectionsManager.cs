@@ -42,6 +42,10 @@ namespace NServiceBus.AddIn.Tests
             throw new System.NotImplementedException();
         }
 
+        public void Stop(string projectionName)
+        {
+        }
+
         public void Enable(string projectionName)
         {
         }

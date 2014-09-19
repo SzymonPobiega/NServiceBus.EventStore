@@ -35,15 +35,16 @@ namespace NServiceBus.Transports.EventStore.Config
 
             var httpEndpoint = new IPEndPoint(IPAddress.Parse(HttpEndpointAddress ?? SingleNodeAddress), HttpPort ?? 2113);
 
-            ClusterSettings clusterSettings;
-            if (clusterSettingsBuilder != null)
-            {
-                clusterSettings = clusterSettingsBuilder;
-            }
-            else
-            {
-                clusterSettings = null;
-            }
+            ClusterSettings clusterSettings = null;
+            //TODO
+            //if (clusterSettingsBuilder != null)
+            //{
+            //    clusterSettings = clusterSettingsBuilder;
+            //}
+            //else
+            //{
+            //    clusterSettings = null;
+            //}
             return new ConnectionConfiguration(connectionSettingsBuilder, clusterSettings, singleNodeAddress, httpEndpoint, Name);
         }
     }

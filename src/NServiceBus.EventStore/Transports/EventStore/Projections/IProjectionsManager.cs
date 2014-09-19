@@ -11,6 +11,7 @@ namespace NServiceBus.Transports.EventStore.Projections
         void Delete(string projectionName);
         ProjectionInfo GetStatus(string projectionName);
         IList<ProjectionInfo> List();
+        void Stop(string projectionName);
         void Enable(string projectionName);
     }
 }

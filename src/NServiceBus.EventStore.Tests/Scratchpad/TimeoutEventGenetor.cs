@@ -2,8 +2,9 @@
 using System.Linq;
 using System.Net;
 using EventStore.ClientAPI;
+using NServiceBus.AddIn.Tests.Integration;
+using NServiceBus.EventStore.Tests;
 using NUnit.Framework;
-using EventStore.Common.Utils;
 
 namespace NServiceBus.AddIn.Tests.Scratchpad
 {
@@ -15,7 +16,7 @@ namespace NServiceBus.AddIn.Tests.Scratchpad
         {
             using (var conn = EventStoreConnection.Create(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113)))
             {
-                conn.Connect();
+                conn.ConnectAsync().Wait();
                 var metadata = new Metadata
                     {
                         FieldA = "A",
@@ -28,9 +29,9 @@ namespace NServiceBus.AddIn.Tests.Scratchpad
                         StringValue = "SomeText"
                     };
 
-                conn.AppendToStream("Stream", ExpectedVersion.Any, new EventData(Guid.NewGuid(), "Event", true,
+                conn.AppendToStreamAsync("Stream", ExpectedVersion.Any, new EventData(Guid.NewGuid(), "Event", true,
                                                                                  payload.ToJsonBytes(),
-                                                                                 metadata.ToJsonBytes()));
+                                                                                 metadata.ToJsonBytes())).Wait();
             }
         }
 
@@ -61,7 +62,7 @@ namespace NServiceBus.AddIn.Tests.Scratchpad
 
             using (var conn = EventStoreConnection.Create(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113)))
             {
-                conn.Connect();
+                conn.ConnectAsync().Wait();
                 var timeouts = Enumerable.Range(0, 100)
                                          .Select(x => new TimeoutData()
                                              {
@@ -77,7 +78,7 @@ namespace NServiceBus.AddIn.Tests.Scratchpad
 
                 foreach (var timeout in timeouts)
                 {
-                    conn.AppendToStream(timeout.Stream, ExpectedVersion.Any, timeout.Data);
+                    conn.AppendToStreamAsync(timeout.Stream, ExpectedVersion.Any, timeout.Data).Wait();
                 }
             }
         }
@@ -89,8 +90,8 @@ namespace NServiceBus.AddIn.Tests.Scratchpad
             var streamId = "Timeout-f75ca537669a477a9eeac58e51d4a8be";
             using (var conn = EventStoreConnection.Create(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113)))
             {
-                conn.Connect();
-                conn.DeleteStream(streamId,ExpectedVersion.Any,true);
+                conn.ConnectAsync().Wait();
+                conn.DeleteStreamAsync(streamId,ExpectedVersion.Any,true).Wait();
             }
         }
         
@@ -101,8 +102,8 @@ namespace NServiceBus.AddIn.Tests.Scratchpad
             var streamId = "TimeoutIndex-2013_11_12_7_41";
             using (var conn = EventStoreConnection.Create(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113)))
             {
-                conn.Connect();
-                var events = conn.ReadStreamEventsBackward(streamId, -1, int.MaxValue, true);
+                conn.ConnectAsync().Wait();
+                var events = conn.ReadStreamEventsBackwardAsync(streamId, -1, int.MaxValue, true).Result;
                 Console.WriteLine("");
             }
         }

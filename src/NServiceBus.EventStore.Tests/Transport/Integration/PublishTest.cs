@@ -28,10 +28,10 @@ namespace NServiceBus.AddIn.Tests.Integration
             var publisher1Address = new Address("pub1", "node1");
             var publisher2Address = new Address("pub2", "node1");
 
-            var projectionsManager = new ProjectionsManager(new NoopLogger(), HttpEndPoint);
+            var projectionsManager = new ProjectionsManager(new NoopLogger(), HttpEndPoint, TimeSpan.FromSeconds(90));
             try
             {
-                projectionsManager.Enable("$by_category", AdminCredentials);
+                projectionsManager.EnableAsync("$by_category", AdminCredentials).Wait();
             }
             catch (Exception)
             {

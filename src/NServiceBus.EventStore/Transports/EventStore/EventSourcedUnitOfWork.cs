@@ -62,7 +62,7 @@ namespace NServiceBus.Transports.EventStore
             {
                 return;
             }
-            connectionManager.GetConnection().AppendToStream(EndpointAddress.GetAggregateStream(aggregateId), expectedVersion.Value, messages);
+            connectionManager.GetConnection().AppendToStreamAsync(EndpointAddress.GetAggregateStream(aggregateId), expectedVersion.Value, messages).Wait();
         }
 
         List<EventData> messages;

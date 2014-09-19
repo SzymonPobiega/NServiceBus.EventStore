@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Linq;
+using System.Threading;
 using NServiceBus.Transports.EventStore.Projections;
 using NServiceBus.Unicast.Messages;
 
@@ -54,8 +55,11 @@ fromCategory('events')
             var types = LoadAndParseQuery(projectionManager, projectionName);
 
             var typeName = FormatTypeName(eventType);
-            types.Add(typeName);
-            CreateOrUpdateQuery(projectionManager, projectionName, types);
+            if (!types.Contains(typeName))
+            {
+                types.Add(typeName);
+                CreateOrUpdateQuery(projectionManager, projectionName, types);
+            }
         }
 
         private static string FormatTypeName(Type eventType)
@@ -92,6 +96,8 @@ fromCategory('events')
                 if (newQuery != null)
                 {
                     projectionManager.UpdateQuery(projectionName, newQuery);
+                    projectionManager.Stop(projectionName);
+                    projectionManager.Enable(projectionName);
                 }
                 else
                 {
