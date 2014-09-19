@@ -34,7 +34,7 @@
             {
                 return "in_" + address.Queue + "-local";
             }
-            return ReceiveStreamCategory(address) + "-" + sourceAddress.Queue;
+            return ReceiveStreamCategory(address) + "-" + sourceAddress.Queue + "_direct";
         }
 
         public static string SubscriberReceiveStreamFrom(this Address address, string source)

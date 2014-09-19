@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EventStore.ClientAPI;
+using NServiceBus.Transports.EventStore.Serializers.Json;
 using NServiceBus.UnitOfWork;
 
 namespace NServiceBus.Transports.EventStore
@@ -61,7 +62,7 @@ namespace NServiceBus.Transports.EventStore
             if (messages.Count == 0)
             {
                 return;
-            }
+            }            
             connectionManager.GetConnection().AppendToStreamAsync(EndpointAddress.GetAggregateStream(aggregateId), expectedVersion.Value, messages).Wait();
         }
 

@@ -24,7 +24,7 @@ namespace NServiceBus.Transports.EventStore
             {
                 eventSourcedUnitOfWork.Publish(message.ToIndirectCommandEventData(address));
             }
-            if (Transaction.Current != null)
+            else if (Transaction.Current != null)
             {
                 transactionalUnitOfWork.Send(message.ToIndirectCommandEventData(address));
             }

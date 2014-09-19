@@ -35,21 +35,17 @@ namespace NServiceBus.AddIn.Tests.Integration
                     EndpointAddress = SenderAddress
                 };
             var sender = CreateSender(unitOfWork);
-            
+
             unitOfWork.Begin();
 
-            unitOfWork.Initialize("58",ExpectedVersion.NoStream);
+            unitOfWork.Initialize("58", ExpectedVersion.Any);
 
             var receiver = new Receiver(ConnectionConfiguration, ReceiverAddress);
 
             //var conn = new DefaultConnectionManager(ConnectionConfiguration);
-            //for (int i = 0; i < 7; i++)
-            //{
-            //    var data = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes(string.Format("{{\"number\" : {0}}}", i));
-            //    var meta = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes("{\"destinationComponent\" : \"comp1\", \"headers\": {}, \"replyTo\" : \"comp2\"}");
-            //    conn.GetConnection().AppendToStreamAsync("ag_comp2-58", ExpectedVersion.Any,
-            //        new EventData(Guid.NewGuid(),"Message",true,data, meta)).Wait();
-            //}
+            //var data = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes(string.Format("{{\"number\" : {0}}}", 0));
+            //var meta = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes("{\"destinationComponent\" : \"comp1\", \"headers\": {}, \"replyTo\" : \"comp2\"}");
+            //conn.GetConnection().AppendToStreamAsync("ag_comp2-58", ExpectedVersion.Any, new EventData(Guid.NewGuid(), "Message", true, data, meta)).Wait();
             SendMessages(sender, 5);
 
             unitOfWork.End();
