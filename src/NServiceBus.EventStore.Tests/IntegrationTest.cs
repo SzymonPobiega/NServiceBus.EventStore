@@ -41,7 +41,8 @@ namespace NServiceBus.AddIn.Tests
             var projectionCreators = new AbstractProjectionCreator[]
             {
                 new ReceiverSinkProjectionCreator(), 
-                new RouterProjectionCreator(), 
+                new TransactionalRouterProjectionCreator(), 
+                new EventSourcedRouterProjectionCreator(), 
                 new SubscriptionsProjectionCreator(), 
             };
             var connectionManager = new DefaultConnectionManager(ConnectionConfiguration);

@@ -1,15 +1,11 @@
 ﻿namespace NServiceBus.Transports.EventStore
 {
-    public class RouterProjectionCreator : AbstractProjectionCreator
+    public abstract class RouterProjectionCreator : AbstractProjectionCreator
     {
-        protected override string GetName()
-        {
-            return "NSB_Router";
-        }
-
+        
         protected override string GetQuery()
         {
-            return @"fromCategory('outputQueue')
+            return @"fromCategory('"+ GetCategory() +@"')
 .when({
 	$any: function (s, e) {
 		if (typeof e.metadata.destinationQueue !== 'undefined') {
@@ -23,6 +19,8 @@
 		}		
 	}
 })";
-        } 
+        }
+
+        protected abstract string GetCategory();
     }
 }

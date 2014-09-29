@@ -2,17 +2,6 @@
 {
     public static class AddressExtensions
     {
-        
-        public static string GetAggregateStreamCategory(this Address address)
-        {
-            return "ag_" + address.Queue;
-        }
-
-        public static string GetAggregateStream(this Address address, string aggregateId)
-        {
-            return "ag_" + address.Queue + "-" + aggregateId;
-        }
-
         public static string GetOutgoingStream(this Address address)
         {
             return "outputQueue-" + address.Queue;
