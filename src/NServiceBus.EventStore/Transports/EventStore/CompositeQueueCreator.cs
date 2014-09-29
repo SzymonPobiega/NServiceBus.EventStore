@@ -15,7 +15,7 @@ namespace NServiceBus.Transports.EventStore
         {
             foreach (var creator in queueCreators)
             {
-                creator.RegisterProjectionsFor(address, account);
+                creator.RegisterProjectionsFor(account);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using NServiceBus.Transports.EventStore.Projections;
 
 namespace NServiceBus.Transports.EventStore
@@ -6,12 +7,12 @@ namespace NServiceBus.Transports.EventStore
     public abstract class AbstractProjectionCreator : IRegisterProjections
     {
         private const string ByCategoryProjection = "$by_category";
-        protected abstract string GetQuery(Address address);
-        protected abstract string GetName(Address address);
+        protected abstract string GetQuery();
+        protected abstract string GetName();
 
         public IManageEventStoreConnections ConnectionManager { get; set; }
 
-        public void RegisterProjectionsFor(Address address, string account)
+        public void RegisterProjectionsFor(string account)
         {
             var projectionManager = ConnectionManager.GetProjectionManager();
             var byCategory = projectionManager.GetStatus(ByCategoryProjection);
@@ -19,13 +20,23 @@ namespace NServiceBus.Transports.EventStore
             {
                 projectionManager.Enable(ByCategoryProjection);
             }
-            var projectionName = GetName(address);
+            var projectionName = GetName();
 
             var projectionList = projectionManager.List();
             if (projectionList.All(x => x.Name != projectionName))
             {
-                var query = GetQuery(address);
-                projectionManager.CreateContinuous(projectionName,query);
+                var query = GetQuery();
+                try
+                {
+                    projectionManager.CreateContinuous(projectionName, query);
+                }
+                catch (Exception)
+                {
+                    if (projectionList.All(x => x.Name != projectionName)) //Still not created
+                    {
+                        throw;
+                    }
+                }
             }
             else
             {

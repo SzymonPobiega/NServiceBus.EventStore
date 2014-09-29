@@ -33,7 +33,7 @@ namespace NServiceBus.Transports.EventStore
         {
             var metadata = new EventStoreMessageMetadata()
                 {
-                    DestinationComponent = destination.GetComponentName()
+                    DestinationQueue = destination.Queue
                 };
             return ToEventData(transportMessage, metadata);
         }

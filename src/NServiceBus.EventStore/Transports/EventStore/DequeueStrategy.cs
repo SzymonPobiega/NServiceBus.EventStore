@@ -27,7 +27,7 @@ namespace NServiceBus.Transports.EventStore
 
         public void Start(int maximumConcurrencyLevel)
         {
-            var incomingQueue = endpointAddress.IncomingQueue();
+            var incomingQueue = endpointAddress.GetInputQueueStream();
             subscriptions = Enumerable.Range(0, maximumConcurrencyLevel)
                 .Select(x =>
                 {

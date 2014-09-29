@@ -2,6 +2,6 @@
 {
     public interface IRegisterProjections
     {
-        void RegisterProjectionsFor(Address address, string account);
+        void RegisterProjectionsFor(string account);
     }
 }

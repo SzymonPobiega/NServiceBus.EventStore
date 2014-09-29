@@ -42,38 +42,12 @@ namespace NServiceBus.AddIn.Tests.Integration
         [Test]
         public void It_can_receive_subscribed_messages()
         {
-            var projectionsManager = new ProjectionsManager(new NoopLogger(), HttpEndPoint, TimeSpan.FromSeconds(90));
-            try
-            {
-                projectionsManager.EnableAsync("$by_category", AdminCredentials).Wait();
-            }
-            catch (Exception)
-            {
-                //best effort
-            }
-
-            var sinkProjectionCreator = new ReceiverSinkProjectionCreator
-                {
-                    ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
-                };
-            sinkProjectionCreator.RegisterProjectionsFor(genericSubscriberAddress, "");
-            sinkProjectionCreator.RegisterProjectionsFor(specificSubscriberAddress, "");
-
-            var transactionalModeRouterProjectionCreator = new TransactionalModeRouterProjectionCreator()
-            {
-                ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
-            };
-            transactionalModeRouterProjectionCreator.RegisterProjectionsFor(publisher1Address, "");
-            transactionalModeRouterProjectionCreator.RegisterProjectionsFor(publisher2Address, "");
-
-            
-
-            var genericSubscriber = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration), MetadataRegistry)
+            var genericSubscriber = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration))
                 {
                     EndpointAddress = genericSubscriberAddress
                 };
             
-            var specificSubscriber = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration), MetadataRegistry)
+            var specificSubscriber = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration))
                 {
                     EndpointAddress = specificSubscriberAddress
                 };
@@ -84,14 +58,14 @@ namespace NServiceBus.AddIn.Tests.Integration
             genericSubscriber.Subscribe(typeof(IBaseEvent), notUserAddress);
             specificSubscriber.Subscribe(typeof(IDerivedEvent1), notUserAddress);
 
-            PublishMessages(publisher1, 5, typeof(IDerivedEvent1));
-            PublishMessages(publisher2, 5, typeof(IDerivedEvent2));
+            PublishMessages(publisher1, 1, typeof(IDerivedEvent1));
+            PublishMessages(publisher2, 1, typeof(IDerivedEvent2));
 
-            if (!specificSubscriberReceiver.ExpectReceived(5, TimeSpan.FromSeconds(10)))
+            if (!specificSubscriberReceiver.ExpectReceived(1, TimeSpan.FromSeconds(10)))
             {
                 Assert.Fail("Received {0} messages out of 1", specificSubscriberReceiver.Count);
             }
-            if (!genericSubscriberReceiver.ExpectReceived(10, TimeSpan.FromSeconds(10)))
+            if (!genericSubscriberReceiver.ExpectReceived(2, TimeSpan.FromSeconds(10)))
             {
                 Assert.Fail("Received {0} messages out of 2", genericSubscriberReceiver.Count);
             }

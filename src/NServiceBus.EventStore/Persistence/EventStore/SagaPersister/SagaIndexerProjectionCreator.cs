@@ -4,7 +4,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
 {
     public class SagaIndexerProjectionCreator : AbstractProjectionCreator
     {
-        protected override string GetQuery(Address address)
+        protected override string GetQuery()
         {
             return @"fromCategory('SagaIntermediateIndex')
 .foreachStream()
@@ -26,7 +26,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
 })";
         }
 
-        protected override string GetName(Address address)
+        protected override string GetName()
         {
             return "SagaIndex";
         }

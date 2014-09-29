@@ -8,6 +8,6 @@ namespace NServiceBus.Transports.EventStore
         public string CorrelationId { get; set; }
         public string ReplyTo { get; set; }
         public Dictionary<string, string> Headers { get; set; }
-        public string DestinationComponent { get; set; }
+        public string DestinationQueue { get; set; }
     }
 }

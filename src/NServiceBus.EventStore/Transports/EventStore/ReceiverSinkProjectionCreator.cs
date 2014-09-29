@@ -2,22 +2,27 @@ namespace NServiceBus.Transports.EventStore
 {
     public class ReceiverSinkProjectionCreator : AbstractProjectionCreator
     {
-        private const string RouterProjectionQueryTemplate = @"fromCategory('{0}')
-.when({{
-	$any: function (s, e) {{
-		emit('{1}', e.eventType, e.data, e.metadata);
-	}}
-}})";
-        protected override string GetName(Address address)
+        protected override string GetName()
         {
-            return address.ReceiverProjectionName();
+            return "NSB_Receiver";
         }
 
-        protected override string GetQuery(Address address)
+        protected override string GetQuery()
         {
-            return string.Format(RouterProjectionQueryTemplate,
-                                 address.ReceiveStreamCategory(),
-                                 address.IncomingQueue());
+            return @"fromCategory('inputQueue')
+.when({
+	$any: function (s, e) {
+        if (e.eventType[0] !== '$') {
+            var dest;
+            if (typeof e.linkMetadata.destinationQueue !== 'undefined') {
+                dest = e.linkMetadata.destinationQueue;
+            } else {
+                dest = e.metadata.destinationQueue;
+            }
+		    emit(dest, e.eventType, e.data, e.metadata);            
+        }
+	}
+})";
         }
     }
 }

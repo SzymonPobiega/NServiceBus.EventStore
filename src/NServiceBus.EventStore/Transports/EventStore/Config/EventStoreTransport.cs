@@ -29,8 +29,8 @@ namespace NServiceBus.Features
             NServiceBus.Configure.Component<MessagePublisher>(DependencyLifecycle.InstancePerCall)
                 .ConfigureProperty(p => p.EndpointAddress, Address.Local);
 
-            NServiceBus.Configure.Component<TransactionalModeRouterProjectionCreator>(DependencyLifecycle.InstancePerCall);
-            NServiceBus.Configure.Component<EventSourcedModeRouterProjectionCreator>(DependencyLifecycle.InstancePerCall);
+            NServiceBus.Configure.Component<RouterProjectionCreator>(DependencyLifecycle.InstancePerCall);
+            NServiceBus.Configure.Component<SubscriptionsProjectionCreator>(DependencyLifecycle.InstancePerCall);
             NServiceBus.Configure.Component<ReceiverSinkProjectionCreator>(DependencyLifecycle.InstancePerCall);
             NServiceBus.Configure.Component<CompositeQueueCreator>(DependencyLifecycle.InstancePerCall);
 

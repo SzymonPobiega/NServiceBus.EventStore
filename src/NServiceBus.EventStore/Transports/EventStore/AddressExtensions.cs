@@ -13,38 +13,19 @@
             return "ag_" + address.Queue + "-" + aggregateId;
         }
 
-        public static string OutgoingStream(this Address address)
+        public static string GetOutgoingStream(this Address address)
         {
-            return address.Queue + "_intermediate_out";
+            return "outputQueue-" + address.Queue;
         }
 
-        public static string GetComponentName(this Address address)
+        public static string GetDirectInputStream(this Address address)
+        {
+            return "inputQueue-" + address.Queue + "_direct";
+        }
+
+        public static string GetInputQueueStream(this Address address)
         {
             return address.Queue;
-        }
-
-        public static string ReceiveStreamCategory(this Address address)
-        {
-            return "in_" + address.Queue;
-        }
-
-        public static string SubscriberReceiveStreamFrom(this Address address, Address sourceAddress)
-        {
-            if (address.Equals(sourceAddress))
-            {
-                return "in_" + address.Queue + "-local";
-            }
-            return ReceiveStreamCategory(address) + "-" + sourceAddress.Queue + "_direct";
-        }
-
-        public static string SubscriberReceiveStreamFrom(this Address address, string source)
-        {
-            return ReceiveStreamCategory(address) + "-" + source;
-        }
-
-        public static string IncomingQueue(this Address address)
-        {
-            return address.Queue + "_in";
         }
     }
 }

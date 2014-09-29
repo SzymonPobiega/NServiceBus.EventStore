@@ -28,30 +28,7 @@ namespace NServiceBus.AddIn.Tests.Integration
             var publisher1Address = new Address("pub1", "node1");
             var publisher2Address = new Address("pub2", "node1");
 
-            var projectionsManager = new ProjectionsManager(new NoopLogger(), HttpEndPoint, TimeSpan.FromSeconds(90));
-            try
-            {
-                projectionsManager.EnableAsync("$by_category", AdminCredentials).Wait();
-            }
-            catch (Exception)
-            {
-                //best effort
-            }
-
-            var sinkProjectionCreator = new ReceiverSinkProjectionCreator
-                {
-                    ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
-                };
-            sinkProjectionCreator.RegisterProjectionsFor(ReceiverAddress, "");
-
-            var transactionalModeRouterProjectionCreator = new TransactionalModeRouterProjectionCreator()
-            {
-                ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
-            };
-            transactionalModeRouterProjectionCreator.RegisterProjectionsFor(publisher1Address, "");
-            transactionalModeRouterProjectionCreator.RegisterProjectionsFor(publisher2Address, "");
-
-            var subscriptionManager = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration), MetadataRegistry)
+            var subscriptionManager = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration))
                 {
                     EndpointAddress = ReceiverAddress
                 };

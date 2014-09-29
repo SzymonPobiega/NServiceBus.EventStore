@@ -14,21 +14,6 @@ namespace NServiceBus.AddIn.Tests.Integration
         [Test]
         public void It_can_send_and_receive_messages()
         {
-            var projectionsManager = new ProjectionsManager(new NoopLogger(), HttpEndPoint, TimeSpan.FromSeconds(90));
-            projectionsManager.EnableAsync("$by_category", AdminCredentials).Wait();
-
-            var sinkProjectionCreator = new ReceiverSinkProjectionCreator
-                {
-                    ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
-                };
-            sinkProjectionCreator.RegisterProjectionsFor(ReceiverAddress,"");
-
-            var routerProjectionCreattor = new TransactionalModeRouterProjectionCreator()
-                {
-                    ConnectionManager = new DefaultConnectionManager(ConnectionConfiguration)
-                };
-            routerProjectionCreattor.RegisterProjectionsFor(SenderAddress,"");
-
             var transactionalSender = CreateSender();
 
             using (var tx = new TransactionScope())

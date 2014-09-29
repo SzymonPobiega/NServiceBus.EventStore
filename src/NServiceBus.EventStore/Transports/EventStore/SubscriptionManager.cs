@@ -1,135 +1,41 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
-using System.Linq;
-using System.Threading;
-using NServiceBus.Transports.EventStore.Projections;
-using NServiceBus.Unicast.Messages;
+using EventStore.ClientAPI;
+using NServiceBus.Transports.EventStore.Serializers.Json;
 
 namespace NServiceBus.Transports.EventStore
 {
     public class SubscriptionManager : IManageSubscriptions
     {
-        const string ProjectionTemplate = @"options({{
-    reorderEvents: false
-}});
-fromCategory('events')
-.when({{
-{1}
-}})";
-
-        private const string EventTemplate = @"'{0}': function (s, e) {{
-        linkTo('{1}',e);
-    }}";
-
-        private static readonly Regex typesExpression = new Regex(@"'([^']+)': function \(s, e\)", RegexOptions.Compiled);
-
         public Address EndpointAddress { get; set; }
 
         private readonly IManageEventStoreConnections connectionManager;
-        private readonly MessageMetadataRegistry metadataRegistry;
 
-        public SubscriptionManager(IManageEventStoreConnections connectionManager, MessageMetadataRegistry metadataRegistry)
+        public SubscriptionManager(IManageEventStoreConnections connectionManager)
         {
             this.connectionManager = connectionManager;
-            this.metadataRegistry = metadataRegistry;
         }
 
         public void Subscribe(Type eventType, Address publisherAddress)
         {
-            try
-            {
-                DoSubscribe(eventType);
-            }
-            catch (Exception)
-            {
-                //Try once again
-                DoSubscribe(eventType);
-            }
+            ChangeSubscription("$subscribe", eventType);
         }
 
-        private void DoSubscribe(Type eventType)
+        private void ChangeSubscription(string action, Type eventType)
         {
-            var projectionManager = connectionManager.GetProjectionManager();
-            var projectionName = EndpointAddress.SubscriptionProjectionName();
-            var types = LoadAndParseQuery(projectionManager, projectionName);
-
-            var typeName = FormatTypeName(eventType);
-            if (!types.Contains(typeName))
+            var data = new SubscriptionEvent()
             {
-                types.Add(typeName);
-                CreateOrUpdateQuery(projectionManager, projectionName, types);
-            }
-        }
-
-        private static string FormatTypeName(Type eventType)
-        {
-            return eventType.AssemblyQualifiedName;
+                SubscriberEndpoint = EndpointAddress.Queue,
+                EventType = eventType.AssemblyQualifiedName,
+            };
+            connectionManager.GetConnection()
+                .AppendToStreamAsync("events-subscriptions", ExpectedVersion.Any,
+                    new EventData(Guid.NewGuid(), action, true, data.ToJsonBytes(), new byte[0]))
+                .Wait();
         }
 
         public void Unsubscribe(Type eventType, Address publisherAddress)
         {
-            var projectionManager = connectionManager.GetProjectionManager();
-            var projectionName = EndpointAddress.SubscriptionProjectionName();
-            var types = LoadAndParseQuery(projectionManager, projectionName);
-            var metadata = metadataRegistry.GetMessageDefinition(eventType);
-            foreach (var type in metadata.MessageHierarchy)
-            {
-                var typeName = FormatTypeName(type);
-                types.Remove(typeName);
-            }
-            CreateOrUpdateQuery(projectionManager, projectionName, types);
-        }
-
-        private void CreateOrUpdateQuery(IProjectionsManager projectionManager, string projectionName, IList<string> types)
-        {
-            var newQuery = RenderQuery(types);
-            if (!projectionManager.Exists(projectionName))
-            {
-                if (newQuery != null)
-                {
-                    projectionManager.CreateContinuous(projectionName, newQuery);                    
-                }
-            }
-            else
-            {
-                if (newQuery != null)
-                {
-                    projectionManager.UpdateQuery(projectionName, newQuery);
-                    projectionManager.Stop(projectionName);
-                    projectionManager.Enable(projectionName);
-                }
-                else
-                {
-                    projectionManager.Delete(projectionName);
-                }
-            }
-        }
-
-        private string RenderQuery(IList<string> types)
-        {
-            if (types.Count == 0 && types.Count == 0)
-            {
-                return null;
-            }
-            var streamsQuoted = types.Select(type => "'" + "events-" + type + "'");
-            var newStreamsString = string.Join(",", streamsQuoted);
-            var typesString = string.Join("," + Environment.NewLine, 
-                types.Select(type => string.Format(EventTemplate, type, EndpointAddress.SubscriberReceiveStreamFrom(type))));
-            var newQuery = string.Format(ProjectionTemplate, newStreamsString, typesString);
-            return newQuery;
-        }
-
-        private IList<string> LoadAndParseQuery(IProjectionsManager projectionManager, string projectionName)
-        {
-            if (projectionManager.Exists(projectionName))
-            {
-                var query = projectionManager.GetQuery(projectionName);
-                var matches = typesExpression.Matches(query);
-                var result = matches.Cast<Match>().Select(m => m.Groups[1].Value).ToList();
-                return result;
-            }
-            return new List<string>();
+            ChangeSubscription("$unsubscribe", eventType);
         }
     }
 }

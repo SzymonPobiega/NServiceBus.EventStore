@@ -107,7 +107,6 @@
     <Compile Include="Transports\EventStore\Projections\ProjectionInfo.cs" />
     <Compile Include="Transports\EventStore\Projections\ProjectionList.cs" />
     <Compile Include="Transports\EventStore\AbstractProjectionCreator.cs" />
-    <Compile Include="Transports\EventStore\EventSourcedModeRouterProjectionCreator.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\Config\JsonNoBomSerialization.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\Config\JsonSerializerConfigurationExtensions.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\Internal\MessageContractResolver.cs" />
@@ -117,10 +116,12 @@
     <Compile Include="Transports\EventStore\Serializers\Json\JsonNoBomMessageSerializer.cs" />
     <Compile Include="Transports\EventStore\Serializers\Json\JsonMessageSerializerBase.cs" />
     <Compile Include="StringExtensions.cs" />
-    <Compile Include="Transports\EventStore\TransactionalModeRouterProjectionCreator.cs" />
+    <Compile Include="Transports\EventStore\RouterProjectionCreator.cs" />
+    <Compile Include="Transports\EventStore\SubscriptionEvent.cs" />
     <Compile Include="Transports\EventStore\SubscriptionManager.cs" />
     <Compile Include="Transports\EventStore\MessagePublisher.cs" />
     <Compile Include="Transports\EventStore\MessageSender.cs" />
+    <Compile Include="Transports\EventStore\SubscriptionsProjectionCreator.cs" />
     <Compile Include="Transports\EventStore\TransactionalUnitOfWork.cs" />
     <Compile Include="Transports\EventStore\IManageEventStoreConnections.cs" />
     <Compile Include="Transports\EventStore\Projections\IProjectionsManager.cs" />
