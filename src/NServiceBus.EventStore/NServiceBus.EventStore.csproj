@@ -79,6 +79,9 @@
     <Compile Include="Persistence\EventStore\SagaPersister\SagaIndexEvent.cs" />
     <Compile Include="Persistence\EventStore\SagaPersister\SagaVersion.cs" />
     <Compile Include="Persistence\EventStore\TimeoutPersister\EventStoreTimeoutPersister.cs" />
+    <Compile Include="Persistence\EventStore\TimeoutPersister\TimeoutHeartbeatEvent.cs" />
+    <Compile Include="Persistence\EventStore\TimeoutPersister\TimeoutHeartbeatGenerator.cs" />
+    <Compile Include="Persistence\EventStore\TimeoutPersister\TimeoutMetadata.cs" />
     <Compile Include="Transports\EventStore\AddressExtensions.cs" />
     <Compile Include="Transports\EventStore\CompositeQueueCreator.cs" />
     <Compile Include="Transports\EventStore\Config\ConnectionConfiguration.cs" />

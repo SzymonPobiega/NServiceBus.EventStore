@@ -39,29 +39,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EventStore.BufferManagement">
-      <HintPath>..\..\lib\EventStore\EventStore.BufferManagement.dll</HintPath>
-    </Reference>
     <Reference Include="EventStore.ClientAPI">
       <HintPath>..\..\lib\EventStore\EventStore.ClientAPI.dll</HintPath>
-    </Reference>
-    <Reference Include="EventStore.Common">
-      <HintPath>..\..\lib\EventStore\EventStore.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="EventStore.Core">
-      <HintPath>..\..\lib\EventStore\EventStore.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="EventStore.Core.Tests">
-      <HintPath>..\..\lib\EventStore\EventStore.Core.Tests.dll</HintPath>
-    </Reference>
-    <Reference Include="EventStore.Projections.Core">
-      <HintPath>..\..\lib\EventStore\EventStore.Projections.Core.dll</HintPath>
-    </Reference>
-    <Reference Include="EventStore.Transport.Http">
-      <HintPath>..\..\lib\EventStore\EventStore.Transport.Http.dll</HintPath>
-    </Reference>
-    <Reference Include="EventStore.Transport.Tcp">
-      <HintPath>..\..\lib\EventStore\EventStore.Transport.Tcp.dll</HintPath>
     </Reference>
     <Reference Include="FluentAssertions">
       <HintPath>..\packages\FluentAssertions\lib\net40\FluentAssertions.dll</HintPath>
@@ -100,20 +79,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IntegrationTest.cs" />
+    <Compile Include="SagaPersistence\Integration\FaultyConnectionManager.cs" />
     <Compile Include="SagaPersistence\Integration\SagaPersisterTests.cs" />
     <Compile Include="SagaPersistence\Integration\TestSaga.cs" />
     <Compile Include="Json.cs" />
     <Compile Include="Transport\Integration\NonTransactionalPolymorphicPublishTests.cs" />
     <Compile Include="Transport\Integration\PolymorphicPublishTest.cs" />
-    <Compile Include="Transport\Integration\EventSourcedModeRouterProjectionCreatorTests.cs" />
     <Compile Include="Transport\Integration\EventSourcedSendAndReceiveTests.cs" />
     <Compile Include="Transport\Integration\NonTransactionalPublishTests.cs" />
-    <Compile Include="Transport\Integration\ProjectionCreatorTest.cs" />
     <Compile Include="Transport\Integration\PublishTest.cs" />
     <Compile Include="Transport\Integration\Receiver.cs" />
     <Compile Include="Transport\Integration\SendAndReceiveTest.cs" />
     <Compile Include="Transport\Integration\SingleReceiverTest.cs" />
-    <Compile Include="Transport\Integration\TransactionalModeRouterProjectionCreatorTests.cs" />
     <Compile Include="Transport\Integration\TransactionalPolymorphicPublishTests.cs" />
     <Compile Include="Transport\Integration\TransactionalPublishTests.cs" />
     <Compile Include="Transport\Integration\TransactionalSendAndReceiveTests.cs" />

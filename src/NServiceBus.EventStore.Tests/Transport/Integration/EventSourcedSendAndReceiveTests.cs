@@ -1,7 +1,6 @@
 ﻿using System;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
-using EventStore.Core.Tests.TransactionLog.Scavenging.Helpers;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Transports.EventStore.Serializers.Json;

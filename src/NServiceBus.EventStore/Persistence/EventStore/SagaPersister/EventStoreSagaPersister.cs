@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.Exceptions;
 using NServiceBus.Saga;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Transports.EventStore.Serializers.Json;
@@ -13,7 +15,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
         private const string SagaDataEventType = "SagaData";
         private const string SagaIndexEventType = "SagaIndex";
         private readonly IManageEventStoreConnections connectionManager;
-        private static readonly ConditionalWeakTable<IContainSagaData, SagaVersion> versionInformation = new ConditionalWeakTable<IContainSagaData, SagaVersion>(); 
+        private static readonly ConditionalWeakTable<IContainSagaData, SagaVersion> versionInformation = new ConditionalWeakTable<IContainSagaData, SagaVersion>();
 
         public EventStoreSagaPersister(IManageEventStoreConnections connectionManager)
         {
@@ -30,21 +32,50 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
         {
             var sagaType = saga.GetType();
             var propertiesToIndex = Features.Sagas.SagaEntityToMessageToPropertyLookup[sagaType]
-                    .Select(x => x.Value.Key)
-                    .Distinct();
+                .Select(x => x.Value.Key)
+                .Distinct()
+                .OrderBy(x => x.Name);
 
             foreach (var property in propertiesToIndex)
             {
-                AddUniqueIndex(saga.Id, sagaType, property.Name, property.GetValue(saga,new object[0]));
+                var propertyValue = property.GetValue(saga, new object[0]);
+                try
+                {
+                    AddUniqueIndex(saga.Id, sagaType, saga.OriginalMessageId, property.Name, propertyValue);
+                }
+                catch (AggregateException ex)
+                {
+                    var versionException = ex.Flatten().InnerException as WrongExpectedVersionException;
+                    if (versionException != null)
+                    {
+                        var indexEvent = ReadIndex(sagaType, property.Name, propertyValue);
+                        if (saga.OriginalMessageId != indexEvent.OriginalMessageId)
+                        {
+                            throw;
+                        }
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
             }
         }
 
-        private void AddUniqueIndex(Guid sagaId, Type sagaType, string property, object value)
+        private void AddUniqueIndex(Guid sagaId, Type sagaType, string originalMessageId, string property, object value)
         {
             var indexStream = BuildIndexStreamName(sagaType, property, value);
-            var payload = new SagaIndexEvent(sagaId).ToJsonBytes();
+            var payload = new SagaIndexEvent(sagaId, originalMessageId).ToJsonBytes();
             var eventData = new EventData(Guid.NewGuid(), SagaIndexEventType, true, payload, new byte[0]);
             connectionManager.GetConnection().AppendToStreamAsync(indexStream, ExpectedVersion.NoStream, eventData).Wait();
+        }
+
+        private SagaIndexEvent ReadIndex(Type sagaType, string property, object value)
+        {
+            var indexStream = BuildIndexStreamName(sagaType, property, value);
+            var indexEvent = connectionManager.GetConnection().ReadStreamEventsForwardAsync(indexStream, 0, 1, true).Result.Events[0];
+            var payload = indexEvent.Event.Data.ParseJson<SagaIndexEvent>();
+            return payload;
         }
 
         private void SaveData(IContainSagaData saga)
@@ -91,7 +122,8 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
 
         public T Get<T>(string property, object value) where T : IContainSagaData
         {
-            return GetFromStream<T>(BuildIndexStreamName(typeof(T), property, value));
+            var index = ReadIndex(typeof (T), property, value);
+            return Get<T>(index.SagaId);
         }
 
         private string BuildIndexStreamName(Type sagaType, string property, object value)
@@ -107,7 +139,7 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
         public void Complete(IContainSagaData saga)
         {
             var streamName = BuildSagaStreamName(saga.GetType(), saga.Id);
-            connectionManager.GetConnection().DeleteStreamAsync(streamName, ExpectedVersion.Any,true).Wait();
+            connectionManager.GetConnection().DeleteStreamAsync(streamName, ExpectedVersion.Any, true).Wait();
         }
 
         private static string BuildSagaStreamName(Type sagaType, Guid sagaId)
