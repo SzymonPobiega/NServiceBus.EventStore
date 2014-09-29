@@ -9,10 +9,7 @@ namespace NServiceBus.AddIn.Tests.Integration
     {
         protected override void PublishMessages(IPublishMessages publisher, int count, Type eventType)
         {
-            for (var i = 0; i < count; i++)
-            {
-                PublishMessage(publisher, eventType, i, MetadataRegistry);
-            }
+            publisher.PublishEvents(eventType, count, MetadataRegistry);
         }
     }
 }

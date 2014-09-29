@@ -9,34 +9,31 @@ using NUnit.Framework;
 namespace NServiceBus.AddIn.Tests.Integration
 {
     [TestFixture]
-    public class EventSourcedSendAndReceiveTests : SendAndReceiveTest
+    public class EventSourcedSendAndReceiveTests : TransportIntegrationTest
     {
         [Test]
         public void It_can_send_and_receive_messages()
         {
+            var senderAddress = GenerateAddress("sender");
+            var receiverAddress = GenerateAddress("receiver");
+
             var unitOfWork = new EventSourcedUnitOfWork(new DefaultConnectionManager(ConnectionConfiguration))
                 {
-                    EndpointAddress = SenderAddress
+                    EndpointAddress = senderAddress
                 };
-            var sender = CreateSender(unitOfWork);
+            var sender = CreateSender(senderAddress, unitOfWork);
 
             unitOfWork.Begin();
 
             unitOfWork.Initialize("58", ExpectedVersion.Any);
 
-            var receiver = new Receiver(ConnectionConfiguration, ReceiverAddress);
+            var probe = new Probe(ConnectionConfiguration, receiverAddress);
 
-            //var conn = new DefaultConnectionManager(ConnectionConfiguration);
-            //var data = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes(string.Format("{{\"number\" : {0}}}", 0));
-            //var meta = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes("{\"destinationComponent\" : \"comp1\", \"headers\": {}, \"replyTo\" : \"comp2\"}");
-            //conn.GetConnection().AppendToStreamAsync("ag_comp2-58", ExpectedVersion.Any, new EventData(Guid.NewGuid(), "Message", true, data, meta)).Wait();
-            SendMessages(sender, 5);
 
-            unitOfWork.End();
-
-            if (!receiver.ExpectReceived(5, TimeSpan.FromSeconds(5)))
+            using (probe.ExpectReceived(5))
             {
-                Assert.Fail("Received {0} messages out of 5", receiver.Count);
+                sender.SendMessages(senderAddress, receiverAddress, 5);
+                unitOfWork.End();
             }
         }
     }

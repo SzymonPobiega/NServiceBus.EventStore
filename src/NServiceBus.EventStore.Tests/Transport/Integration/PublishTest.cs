@@ -8,7 +8,7 @@ using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
 {
-    public abstract class PublishTest : SingleReceiverTest
+    public abstract class PublishTest : TransportIntegrationTest
     {
         protected MessageMetadataRegistry MetadataRegistry;
         protected abstract void PublishMessages(IPublishMessages publisher, int count, Type eventType);
@@ -25,52 +25,43 @@ namespace NServiceBus.AddIn.Tests.Integration
         [Test]
         public void It_can_receive_subscribed_messages()
         {
-            var publisher1Address = new Address("pub1", "node1");
-            var publisher2Address = new Address("pub2", "node1");
+            var subscriberAddress = GenerateAddress("sub");
+            var receiver = new Probe(ConnectionConfiguration, subscriberAddress);
 
             var subscriptionManager = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration))
                 {
-                    EndpointAddress = ReceiverAddress
+                    EndpointAddress = subscriberAddress
                 };
 
-            var publisher1 = CreatePublisher(publisher1Address);
-            var publisher2 = CreatePublisher(publisher2Address);
+            var publisher1 = CreatePublisher(GenerateAddress("pub1"));
+            var publisher2 = CreatePublisher(GenerateAddress("pub2"));
 
             subscriptionManager.Subscribe(typeof(EventA), publisher1.EndpointAddress);
 
-            PublishMessages(publisher1, 1, typeof(EventA));
-
-            if (!ExpectReceive(1, TimeSpan.FromSeconds(5)))
+            using (receiver.ExpectReceived(1))
             {
-                Assert.Fail("Received {0} messages out of 1", Count);
+                PublishMessages(publisher1, 1, typeof(EventA));                
             }
 
             subscriptionManager.Subscribe(typeof(EventB), publisher2.EndpointAddress);
 
-            PublishMessages(publisher2, 1, typeof(EventB));
-
-            if (!ExpectReceive(1, TimeSpan.FromSeconds(5)))
+            using (receiver.ExpectReceived(1))
             {
-                Assert.Fail("Received {0} messages out of 1", Count);
+                PublishMessages(publisher2, 1, typeof (EventB));
             }
-
+            
             subscriptionManager.Subscribe(typeof(EventC), publisher2.EndpointAddress);
 
-            PublishMessages(publisher2, 1, typeof(EventC));
-
-            if (!ExpectReceive(1, TimeSpan.FromSeconds(5)))
+            using (receiver.ExpectReceived(1))
             {
-                Assert.Fail("Received {0} messages out of 1", Count);
+                PublishMessages(publisher2, 1, typeof (EventC));
             }
-
+            
             subscriptionManager.Unsubscribe(typeof(EventC), publisher2.EndpointAddress);
-
-            PublishMessages(publisher2, 1, typeof(EventB));
-            PublishMessages(publisher2, 1, typeof(EventC));
-
-            if (!ExpectReceive(1, TimeSpan.FromSeconds(5)))
+            using (receiver.ExpectReceived(1))
             {
-                Assert.Fail("Received {0} messages out of 1", Count);
+                PublishMessages(publisher2, 1, typeof (EventB));
+                PublishMessages(publisher2, 1, typeof (EventC));
             }
         }
 

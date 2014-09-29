@@ -1,30 +1,26 @@
-﻿using System;
-using System.Transactions;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Common.Log;
-using NServiceBus.Transports;
-using NServiceBus.Transports.EventStore;
+﻿using System.Transactions;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
 {
     [TestFixture]
-    public class TransactionalSendAndReceiveTests : SingleReceiverTest
+    public class TransactionalSendAndReceiveTests : TransportIntegrationTest
     {
         [Test]
         public void It_can_send_and_receive_messages()
         {
-            var transactionalSender = CreateSender();
+            var receiverAddress = GenerateAddress("receiver");
+            var senderAddress = GenerateAddress("sender");
+            var sender = CreateSender(senderAddress);
 
-            using (var tx = new TransactionScope())
+            var probe = new Probe(ConnectionConfiguration, receiverAddress);
+            using (probe.ExpectReceived(5))
             {
-                SendMessages(transactionalSender, 5);
-                tx.Complete();
-            }
-
-            if (!ExpectReceive(5, TimeSpan.FromSeconds(5)))
-            {
-                Assert.Fail("Received {0} messages out of 5", Count);
+                using (var tx = new TransactionScope())
+                {
+                    sender.SendMessages(senderAddress, receiverAddress, 5);
+                    tx.Complete();
+                }
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Transactions;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
 using NServiceBus.Transports;
@@ -8,18 +9,19 @@ using NUnit.Framework;
 namespace NServiceBus.AddIn.Tests.Integration
 {
     [TestFixture]
-    public class NonTransactionalSendAndReceiveTests : SingleReceiverTest
+    public class NonTransactionalSendAndReceiveTests : TransportIntegrationTest
     {
         [Test]
         public void It_can_send_and_receive_messages()
         {
-            var nonTransactionalSender = CreateSender();
+            var receiverAddress = GenerateAddress("receiver");
+            var senderAddress = GenerateAddress("sender");
+            var sender = CreateSender(senderAddress);
 
-            SendMessages(nonTransactionalSender, 5);
-
-            if (!ExpectReceive(5, TimeSpan.FromSeconds(5)))
+            var probe = new Probe(ConnectionConfiguration, receiverAddress);
+            using (probe.ExpectReceived(5))
             {
-                Assert.Fail("Received {0} messages out of 5", Count);
+                sender.SendMessages(senderAddress, receiverAddress, 5);
             }
         }
     }

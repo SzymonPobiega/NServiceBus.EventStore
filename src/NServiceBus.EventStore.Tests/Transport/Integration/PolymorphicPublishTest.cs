@@ -8,31 +8,16 @@ using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Integration
 {
-    public abstract class PolymorphicPublishTest : SendAndReceiveTest
+    public abstract class PolymorphicPublishTest : TransportIntegrationTest
     {
-        private static readonly Address notUserAddress = null;
+        private static readonly Address NotUsedAddress = null;
+        protected MessageMetadataRegistry MetadataRegistry;
 
         protected abstract void PublishMessages(IPublishMessages publisher, int count, Type eventType);
 
-        private Receiver genericSubscriberReceiver;
-        private Receiver specificSubscriberReceiver;
-        private Address publisher1Address;
-        private Address publisher2Address;
-        private Address genericSubscriberAddress;
-        private Address specificSubscriberAddress;
-        protected MessageMetadataRegistry MetadataRegistry;
-
         [SetUp]
-        public void SetUpReceiversAndMessageMetadata()
+        public void SetUpMessageMetadata()
         {
-            publisher1Address = new Address("pub1", "node1");
-            publisher2Address = new Address("pub2", "node1");
-            genericSubscriberAddress = new Address("genSub", "store1");
-            specificSubscriberAddress = new Address("specSub", "store1");
-
-            genericSubscriberReceiver = new Receiver(ConnectionConfiguration, genericSubscriberAddress);
-            specificSubscriberReceiver = new Receiver(ConnectionConfiguration, specificSubscriberAddress);
-
             MetadataRegistry = new MessageMetadataRegistry();
             MetadataRegistry.RegisterMessageType(typeof(IBaseEvent));
             MetadataRegistry.RegisterMessageType(typeof(IDerivedEvent1));
@@ -42,6 +27,18 @@ namespace NServiceBus.AddIn.Tests.Integration
         [Test]
         public void It_can_receive_subscribed_messages()
         {
+            var publisher1Address = GenerateAddress("pub1");
+            var publisher2Address = GenerateAddress("pub2");
+            var genericSubscriberAddress = GenerateAddress("gen-sub");
+            var specificSubscriberAddress = GenerateAddress("spec-sub");
+            var genericSubscriberProbe = new Probe(ConnectionConfiguration, genericSubscriberAddress);
+            var specificSubscriberProbe = new Probe(ConnectionConfiguration, specificSubscriberAddress);
+            var metadataRegistry = new MessageMetadataRegistry();
+
+            metadataRegistry.RegisterMessageType(typeof(IBaseEvent));
+            metadataRegistry.RegisterMessageType(typeof(IDerivedEvent1));
+            metadataRegistry.RegisterMessageType(typeof(IDerivedEvent2));
+
             var genericSubscriber = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration))
                 {
                     EndpointAddress = genericSubscriberAddress
@@ -55,21 +52,15 @@ namespace NServiceBus.AddIn.Tests.Integration
             var publisher1 = CreatePublisher(publisher1Address);
             var publisher2 = CreatePublisher(publisher2Address);
 
-            genericSubscriber.Subscribe(typeof(IBaseEvent), notUserAddress);
-            specificSubscriber.Subscribe(typeof(IDerivedEvent1), notUserAddress);
+            genericSubscriber.Subscribe(typeof(IBaseEvent), NotUsedAddress);
+            specificSubscriber.Subscribe(typeof(IDerivedEvent1), NotUsedAddress);
 
-            PublishMessages(publisher1, 1, typeof(IDerivedEvent1));
-            PublishMessages(publisher2, 1, typeof(IDerivedEvent2));
-
-            if (!specificSubscriberReceiver.ExpectReceived(1, TimeSpan.FromSeconds(10)))
+            using (specificSubscriberProbe.ExpectReceived(1))
+            using (genericSubscriberProbe.ExpectReceived(2))
             {
-                Assert.Fail("Received {0} messages out of 1", specificSubscriberReceiver.Count);
+                PublishMessages(publisher1, 1, typeof (IDerivedEvent1));
+                PublishMessages(publisher2, 1, typeof (IDerivedEvent2));
             }
-            if (!genericSubscriberReceiver.ExpectReceived(2, TimeSpan.FromSeconds(10)))
-            {
-                Assert.Fail("Received {0} messages out of 2", genericSubscriberReceiver.Count);
-            }
-            
         }
 
 

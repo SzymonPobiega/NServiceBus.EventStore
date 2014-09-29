@@ -43,16 +43,13 @@ namespace NServiceBus.Transports.EventStore
             return ToEventData(transportMessage, new EventStoreMessageMetadata());
         }
         
-        public static EventData ToDirectCommandEventData(this TransportMessage transportMessage, Address destination)
-        {
-            return ToEventData(transportMessage, new EventStoreMessageMetadata());
-        }
-
         private static EventData ToEventData(TransportMessage transportMessage, EventStoreMessageMetadata metadata)
         {
             metadata.CorrelationId = transportMessage.CorrelationId;
             metadata.MessageId = transportMessage.Id;
-            metadata.ReplyTo = transportMessage.ReplyToAddress.ToString();
+            metadata.ReplyTo = transportMessage.ReplyToAddress != null 
+                ? transportMessage.ReplyToAddress.ToString()
+                : null;
             metadata.Headers = transportMessage.Headers;
             var type = transportMessage.IsControlMessage() 
                               ? "ControlMessage" 

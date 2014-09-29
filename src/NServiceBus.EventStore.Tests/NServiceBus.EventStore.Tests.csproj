@@ -88,13 +88,11 @@
     <Compile Include="Transport\Integration\EventSourcedSendAndReceiveTests.cs" />
     <Compile Include="Transport\Integration\NonTransactionalPublishTests.cs" />
     <Compile Include="Transport\Integration\PublishTest.cs" />
-    <Compile Include="Transport\Integration\Receiver.cs" />
-    <Compile Include="Transport\Integration\SendAndReceiveTest.cs" />
-    <Compile Include="Transport\Integration\SingleReceiverTest.cs" />
+    <Compile Include="Transport\Integration\Probe.cs" />
+    <Compile Include="Transport\Integration\TransportIntegrationTest.cs" />
     <Compile Include="Transport\Integration\TransactionalPolymorphicPublishTests.cs" />
     <Compile Include="Transport\Integration\TransactionalPublishTests.cs" />
     <Compile Include="Transport\Integration\TransactionalSendAndReceiveTests.cs" />
-    <Compile Include="Transport\Integration\TransportIntegrationTest.cs" />
     <Compile Include="Transport\Integration\NonTransactionalSendAndReceiveTests.cs" />
     <Compile Include="Scratchpad\TimeoutEventGenetor.cs" />
     <Compile Include="Transport\Unit\ConnectionStringParserTests.cs" />

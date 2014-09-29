@@ -45,13 +45,14 @@ namespace NServiceBus.AddIn.Tests
                 new EventSourcedRouterProjectionCreator(), 
                 new SubscriptionsProjectionCreator(), 
             };
-            var connectionManager = new DefaultConnectionManager(ConnectionConfiguration);
-            foreach (var projectionCreator in projectionCreators)
+            using (var connectionManager = new DefaultConnectionManager(ConnectionConfiguration))
             {
-                projectionCreator.ConnectionManager = connectionManager;
-                projectionCreator.RegisterProjectionsFor(null);
+                foreach (var projectionCreator in projectionCreators)
+                {
+                    projectionCreator.ConnectionManager = connectionManager;
+                    projectionCreator.RegisterProjectionsFor(null);
+                }
             }
-
         }
 
         [TearDown]
