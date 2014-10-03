@@ -51,31 +51,5 @@ namespace NServiceBus.EventStore.Tests
             var result = JsonConvert.DeserializeObject<T>(JsonNoBomMessageSerializer.UTF8NoBom.GetString(json), JsonSettings);
             return result;
         }
-
-        public static object DeserializeObject(JObject value, Type type, JsonSerializerSettings settings)
-        {
-            JsonSerializer jsonSerializer = JsonSerializer.Create(settings);
-            return jsonSerializer.Deserialize(new JTokenReader(value), type);
-        }
-
-        public static object DeserializeObject(JObject value, Type type, params JsonConverter[] converters)
-        {
-            var settings = converters == null || converters.Length <= 0
-                ? null
-                : new JsonSerializerSettings { Converters = converters };
-            return DeserializeObject(value, type, settings);
-        }
-
-        public static XmlDocument ToXmlDocument(this JObject value, string deserializeRootElementName, bool writeArrayAttribute)
-        {
-            return (XmlDocument)DeserializeObject(value, typeof(XmlDocument), new JsonConverter[]
-            {
-                new XmlNodeConverter
-                {
-                    DeserializeRootElementName = deserializeRootElementName,
-                    WriteArrayAttribute = writeArrayAttribute
-                }
-            });
-        }
     }
 }

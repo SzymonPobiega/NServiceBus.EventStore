@@ -1,5 +1,6 @@
 ﻿using System.Transactions;
 using EventStore.ClientAPI;
+using NServiceBus.Unicast;
 
 namespace NServiceBus.Transports.EventStore
 {
@@ -18,20 +19,21 @@ namespace NServiceBus.Transports.EventStore
             this.eventSourcedUnitOfWork = eventSourcedUnitOfWork;
         }
 
-        public void Send(TransportMessage message, Address address)
+        public void Send(TransportMessage message, SendOptions sendOptions)
         {
-            var eventData = message.ToIndirectCommandEventData(address);
+            var destination = sendOptions.Destination;
             if (eventSourcedUnitOfWork.IsInitialized)
             {
-                eventSourcedUnitOfWork.Publish(eventData);
+                eventSourcedUnitOfWork.Publish(message.ToIndirectCommandEventData(destination));
             }
             else if (Transaction.Current != null)
             {
-                transactionalUnitOfWork.Send(eventData);
+                transactionalUnitOfWork.Send(message.ToIndirectCommandEventData(destination));
             }
             else
             {
                 connectionManager.GetConnection().AppendToStreamAsync(EndpointAddress.GetOutgoingStream(), ExpectedVersion.Any, eventData).Wait();
+                             .AppendToStreamAsync(destination.GetDirectInputStream(), ExpectedVersion.Any, message.ToDirectCommandEventData(destination))
             }
         }
     }

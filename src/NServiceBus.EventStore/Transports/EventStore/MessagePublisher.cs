@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Transactions;
 using EventStore.ClientAPI;
+using NServiceBus.Unicast;
 
 namespace NServiceBus.Transports.EventStore
 {
@@ -22,7 +23,7 @@ namespace NServiceBus.Transports.EventStore
             this.eventSourcedUnitOfWork = eventSourcedUnitOfWork;
         }
 
-        public bool Publish(TransportMessage message, IEnumerable<Type> eventTypes)
+        public void Publish(TransportMessage message, PublishOptions publishOptions)
         {
             var eventData = message.ToEventEventData();
 
@@ -38,7 +39,6 @@ namespace NServiceBus.Transports.EventStore
             {
                 connectionManager.GetConnection().AppendToStreamAsync(EndpointAddress.GetOutgoingStream(), ExpectedVersion.Any, eventData).Wait();
             }
-            return true;
         }
     }
 }

@@ -5,6 +5,7 @@ using NServiceBus.Serializers.Json;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Transports.EventStore.Serializers.Json;
+using NServiceBus.Unicast;
 using NServiceBus.Unicast.Messages;
 
 namespace NServiceBus.AddIn.Tests.Integration
@@ -63,9 +64,9 @@ namespace NServiceBus.AddIn.Tests.Integration
     {
         public static void PublishEvents(this IPublishMessages publisher, Type eventType, int count, MessageMetadataRegistry metadataRegistry)
         {
-            var definition = metadataRegistry.GetMessageDefinition(eventType);
+            var definition = metadataRegistry.GetMessageMetadata(eventType);
             var enclosedMessageTypes = string.Join(";",definition.MessageHierarchy.Select(x => x.AssemblyQualifiedName));
-            for (var i = 0; i < count; i++)
+            publisher.Publish(GenerateTransportMessage(i, enclosedMessageTypes), new PublishOptions(eventType));
             {
                 publisher.Publish(MessageGenertor.GenerateTransportMessage(new Address("noreply",null), i, enclosedMessageTypes),
                     new[] {eventType});

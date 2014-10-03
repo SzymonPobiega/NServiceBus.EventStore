@@ -18,10 +18,10 @@ namespace NServiceBus.Transports.EventStore
             }
             var metadata = evnt.Event.Metadata.ParseJson<EventStoreMessageMetadata>();
             var headers = metadata.Headers.ToDictionary(x => x.Key.ToPascalCase(), x => x.Value);
+            headers[Headers.ReplyToAddress] = metadata.ReplyTo;
             var transportMessage = new TransportMessage(metadata.MessageId, headers)
                 {
                     Body = evnt.Event.Data,
-                    ReplyToAddress = Address.Parse(metadata.ReplyTo),
                     CorrelationId = metadata.CorrelationId
                 };
             return transportMessage;
@@ -51,7 +51,7 @@ namespace NServiceBus.Transports.EventStore
                 ? transportMessage.ReplyToAddress.ToString()
                 : null;
             metadata.Headers = transportMessage.Headers;
-            var type = transportMessage.IsControlMessage() 
+            var type = transportMessage.Headers.ContainsKey(Headers.ControlMessageHeader) 
                               ? "ControlMessage" 
                               : transportMessage.Headers[Headers.EnclosedMessageTypes];
 
