@@ -12,7 +12,7 @@ namespace NServiceBus.AddIn.Tests.Integration
         {
             using (var tx = new TransactionScope())
             {
-                publisher.PublishEvents(eventType, count, MetadataRegistry);
+                publisher.PublishEvents(eventType, count);
                 tx.Complete();
             }
         }

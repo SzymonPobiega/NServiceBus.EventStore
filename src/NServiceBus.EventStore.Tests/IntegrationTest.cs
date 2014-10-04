@@ -13,8 +13,8 @@ namespace NServiceBus.AddIn.Tests
 {
     public abstract class IntegrationTest
     {
-        private const string EventStoreBinary = @"C:\Projects\EventStore\bin\ClusterNode\EventStore.ClusterNode.exe";
-        private bool UseExternalEventStore = true;
+        private const string EventStoreBinary = @"..\..\..\..\lib\EventStore\ClusterNode\EventStore.ClusterNode.exe";
+        private bool UseExternalEventStore = false;
 
         protected readonly UserCredentials AdminCredentials = new UserCredentials("admin", "changeit");
 
@@ -30,7 +30,7 @@ namespace NServiceBus.AddIn.Tests
         {
             if (!UseExternalEventStore)
             {
-                eventStoreProcess = Process.Start(EventStoreBinary, "--run-projections=All --tcp-timeout=1000000 --mem-db");
+                eventStoreProcess = Process.Start(EventStoreBinary, "--run-projections=All --mem-db");
                 Thread.Sleep(5000);
             }
             TcpEndPoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 1113);

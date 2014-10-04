@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using System.Transactions;
 using EventStore.ClientAPI.Common.Utils;
 using NServiceBus.EventStore.Tests;
 using NServiceBus.Transports.EventStore;
@@ -41,7 +42,7 @@ namespace NServiceBus.AddIn.Tests.Integration
         {
             dequeueStrategy = new DequeueStrategy(new DefaultConnectionManager(connectionConfiguration));
             Event = new ManualResetEventSlim();
-            dequeueStrategy.Init(address, TransactionSettings.Default,
+            dequeueStrategy.Init(address, new TransactionSettings(true, TimeSpan.FromSeconds(60), IsolationLevel.Serializable, 0, false, false), 
                                  x =>
                                      {
                                          if (Interlocked.Increment(ref actualCount) == TargetCount)

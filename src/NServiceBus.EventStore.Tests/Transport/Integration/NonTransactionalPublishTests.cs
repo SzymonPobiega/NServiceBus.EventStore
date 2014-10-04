@@ -11,7 +11,7 @@ namespace NServiceBus.AddIn.Tests.Integration
         {
             for (var i = 0; i < count; i++)
             {
-                publisher.PublishEvents(eventType, count, MetadataRegistry);
+                publisher.PublishEvents(eventType, count);
             }
         }
     }

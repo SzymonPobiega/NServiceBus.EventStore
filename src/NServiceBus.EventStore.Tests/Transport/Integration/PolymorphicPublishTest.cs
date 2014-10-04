@@ -11,18 +11,8 @@ namespace NServiceBus.AddIn.Tests.Integration
     public abstract class PolymorphicPublishTest : TransportIntegrationTest
     {
         private static readonly Address NotUsedAddress = null;
-        protected MessageMetadataRegistry MetadataRegistry;
 
         protected abstract void PublishMessages(IPublishMessages publisher, int count, Type eventType);
-
-        [SetUp]
-        public void SetUpMessageMetadata()
-        {
-            MetadataRegistry = new MessageMetadataRegistry();
-            MetadataRegistry.RegisterMessageType(typeof(IBaseEvent));
-            MetadataRegistry.RegisterMessageType(typeof(IDerivedEvent1));
-            MetadataRegistry.RegisterMessageType(typeof(IDerivedEvent2));
-        }
 
         [Test]
         public void It_can_receive_subscribed_messages()
@@ -33,11 +23,6 @@ namespace NServiceBus.AddIn.Tests.Integration
             var specificSubscriberAddress = GenerateAddress("spec-sub");
             var genericSubscriberProbe = new Probe(ConnectionConfiguration, genericSubscriberAddress);
             var specificSubscriberProbe = new Probe(ConnectionConfiguration, specificSubscriberAddress);
-            var metadataRegistry = new MessageMetadataRegistry();
-
-            metadataRegistry.RegisterMessageType(typeof(IBaseEvent));
-            metadataRegistry.RegisterMessageType(typeof(IDerivedEvent1));
-            metadataRegistry.RegisterMessageType(typeof(IDerivedEvent2));
 
             var genericSubscriber = new SubscriptionManager(new DefaultConnectionManager(ConnectionConfiguration))
                 {

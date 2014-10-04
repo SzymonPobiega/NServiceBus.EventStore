@@ -39,11 +39,13 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EventStore.ClientAPI">
-      <HintPath>..\..\lib\EventStore\EventStore.ClientAPI.dll</HintPath>
+    <Reference Include="EventStore.ClientAPI, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\EventStore\clientapi\EventStore.ClientAPI.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Newtonsoft.Json">
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\Newtonsoft.Json.6.0.5\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="NServiceBus.Core">
@@ -52,8 +54,9 @@
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
-    <Reference Include="protobuf-net">
-      <HintPath>..\..\lib\EventStore\protobuf-net.dll</HintPath>
+    <Reference Include="protobuf-net, Version=2.0.0.594, Culture=neutral, PublicKeyToken=257b51d87d2e4d67, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\lib\EventStore\clientapi\protobuf-net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -93,23 +96,6 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="..\..\lib\EventStore\js1.dll">
-      <Link>js1.dll</Link>
-    </Content>
-    <Content Include="..\..\lib\EventStore\Prelude\1Prelude.js">
-      <Link>Prelude\1Prelude.js</Link>
-    </Content>
-    <Content Include="..\..\lib\EventStore\Prelude\Modules.js">
-      <Link>Prelude\Modules.js</Link>
-    </Content>
-    <Content Include="..\..\lib\EventStore\Prelude\ModulesExecuted.js">
-      <Link>Prelude\ModulesExecuted.js</Link>
-    </Content>
-    <Content Include="..\..\lib\EventStore\Prelude\Projections.js">
-      <Link>Prelude\Projections.js</Link>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NServiceBus.EventStore\NServiceBus.EventStore.csproj">

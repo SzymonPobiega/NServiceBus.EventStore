@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using NServiceBus.EventStore.Tests;
 using NServiceBus.Serializers.Json;
@@ -62,14 +63,33 @@ namespace NServiceBus.AddIn.Tests.Integration
 
     public static class PublisherExtensions
     {
-        public static void PublishEvents(this IPublishMessages publisher, Type eventType, int count, MessageMetadataRegistry metadataRegistry)
+        private static readonly Conventions conventions = new Conventions();
+
+        public static void PublishEvents(this IPublishMessages publisher, Type eventType, int count)
         {
-            var definition = metadataRegistry.GetMessageMetadata(eventType);
-            var enclosedMessageTypes = string.Join(";",definition.MessageHierarchy.Select(x => x.AssemblyQualifiedName));
-            publisher.Publish(GenerateTransportMessage(i, enclosedMessageTypes), new PublishOptions(eventType));
+            var messageTypes = GetMessageTypes(eventType).Where(x => conventions.IsMessageType(x));
+            var messageTypesString = string.Join(";", messageTypes.Select(x => x.AssemblyQualifiedName));
+
+            for (var i = 0; i < count; i++ )
             {
-                publisher.Publish(MessageGenertor.GenerateTransportMessage(new Address("noreply",null), i, enclosedMessageTypes),
-                    new[] {eventType});
+                publisher.Publish(MessageGenertor.GenerateTransportMessage(new Address("noreply", null), i, messageTypesString),new PublishOptions(eventType));
+            }
+        }
+
+        static IEnumerable<Type> GetMessageTypes(Type type)
+        {
+            yield return type;
+            foreach (var i in type.GetInterfaces())
+            {
+                yield return i;
+            }
+
+            var currentBaseType = type.BaseType;
+            var objectType = typeof(Object);
+            while (currentBaseType != null && currentBaseType != objectType)
+            {
+                yield return currentBaseType;
+                currentBaseType = currentBaseType.BaseType;
             }
         }
     }
@@ -80,7 +100,7 @@ namespace NServiceBus.AddIn.Tests.Integration
         {
             for (var i = 0; i < count; i++)
             {
-                sender.Send(MessageGenertor.GenerateTransportMessage(source, i, "MessageType"), destination);
+                sender.Send(MessageGenertor.GenerateTransportMessage(source, i, "MessageType"), new SendOptions(destination));
             }
         }
     }
@@ -91,12 +111,12 @@ namespace NServiceBus.AddIn.Tests.Integration
         {
             var message = new TransportMessage()
             {
-                ReplyToAddress = sender,
                 CorrelationId = "correlation",
                 Body = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes(string.Format("{{\"number\" : {0}}}", number))
             };
             message.Headers[Headers.EnclosedMessageTypes] = messageTypes;
             message.Headers[Headers.ContentType] = ContentTypes.Json;
+            message.Headers[Headers.ReplyToAddress] = sender.ToString();
             return message;
         }  
     }

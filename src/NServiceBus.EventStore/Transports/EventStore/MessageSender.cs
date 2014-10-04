@@ -22,18 +22,18 @@ namespace NServiceBus.Transports.EventStore
         public void Send(TransportMessage message, SendOptions sendOptions)
         {
             var destination = sendOptions.Destination;
+            var eventData = message.ToIndirectCommandEventData(destination);
             if (eventSourcedUnitOfWork.IsInitialized)
             {
-                eventSourcedUnitOfWork.Publish(message.ToIndirectCommandEventData(destination));
+                eventSourcedUnitOfWork.Publish(eventData);
             }
             else if (Transaction.Current != null)
             {
-                transactionalUnitOfWork.Send(message.ToIndirectCommandEventData(destination));
+                transactionalUnitOfWork.Send(eventData);
             }
             else
             {
                 connectionManager.GetConnection().AppendToStreamAsync(EndpointAddress.GetOutgoingStream(), ExpectedVersion.Any, eventData).Wait();
-                             .AppendToStreamAsync(destination.GetDirectInputStream(), ExpectedVersion.Any, message.ToDirectCommandEventData(destination))
             }
         }
     }

@@ -10,17 +10,7 @@ namespace NServiceBus.AddIn.Tests.Integration
 {
     public abstract class PublishTest : TransportIntegrationTest
     {
-        protected MessageMetadataRegistry MetadataRegistry;
         protected abstract void PublishMessages(IPublishMessages publisher, int count, Type eventType);
-
-        [SetUp]
-        public void SetUpMessageMetadata()
-        {
-            MetadataRegistry = new MessageMetadataRegistry();
-            MetadataRegistry.RegisterMessageType(typeof(EventA));
-            MetadataRegistry.RegisterMessageType(typeof(EventB));
-            MetadataRegistry.RegisterMessageType(typeof(EventC));
-        }
 
         [Test]
         public void It_can_receive_subscribed_messages()
