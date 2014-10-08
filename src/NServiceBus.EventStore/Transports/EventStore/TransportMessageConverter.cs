@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Utils;
 using System.Linq;
-using NServiceBus.Transports.EventStore.Serializers.Json;
+using NServiceBus.Internal;
 using NServiceBus.Unicast.Transport;
 
 namespace NServiceBus.Transports.EventStore
@@ -18,7 +18,10 @@ namespace NServiceBus.Transports.EventStore
             }
             var metadata = evnt.Event.Metadata.ParseJson<EventStoreMessageMetadata>();
             var headers = metadata.Headers.ToDictionary(x => x.Key.ToPascalCase(), x => x.Value);
-            headers[Headers.ReplyToAddress] = metadata.ReplyTo;
+            if (metadata.ReplyTo != null)
+            {
+                headers[Headers.ReplyToAddress] = metadata.ReplyTo;
+            }
             var transportMessage = new TransportMessage(metadata.MessageId, headers)
                 {
                     Body = evnt.Event.Data,
@@ -29,27 +32,29 @@ namespace NServiceBus.Transports.EventStore
 
         
 
-        public static EventData ToIndirectCommandEventData(this TransportMessage transportMessage, Address destination)
+        public static EventData ToIndirectCommandEventData(this TransportMessage transportMessage, Address destination, Address replyToAddress)
         {
             var metadata = new EventStoreMessageMetadata()
                 {
-                    DestinationQueue = destination.Queue
+                    DestinationQueue = destination.Queue,
+                    ReplyTo = replyToAddress != null ? replyToAddress.Queue : null
                 };
             return ToEventData(transportMessage, metadata);
         }
 
-        public static EventData ToEventEventData(this TransportMessage transportMessage)
+        public static EventData ToEventEventData(this TransportMessage transportMessage, Address replyToAddress)
         {
-            return ToEventData(transportMessage, new EventStoreMessageMetadata());
+            var metadata = new EventStoreMessageMetadata
+                {
+                    ReplyTo = replyToAddress != null ? replyToAddress.Queue : null
+                };
+            return ToEventData(transportMessage, metadata);
         }
-        
+
         private static EventData ToEventData(TransportMessage transportMessage, EventStoreMessageMetadata metadata)
         {
             metadata.CorrelationId = transportMessage.CorrelationId;
             metadata.MessageId = transportMessage.Id;
-            metadata.ReplyTo = transportMessage.ReplyToAddress != null 
-                ? transportMessage.ReplyToAddress.ToString()
-                : null;
             metadata.Headers = transportMessage.Headers;
             var type = transportMessage.Headers.ContainsKey(Headers.ControlMessageHeader) 
                               ? "ControlMessage" 

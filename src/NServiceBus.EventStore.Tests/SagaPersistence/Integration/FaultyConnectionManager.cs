@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Linq;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
+using NServiceBus.Internal.Projections;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.Projections;
 
 namespace NServiceBus.AddIn.Tests.SagaPersistence.Integration
 {

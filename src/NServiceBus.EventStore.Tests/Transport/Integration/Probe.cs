@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Threading;
 using System.Transactions;
-using EventStore.ClientAPI.Common.Utils;
-using NServiceBus.EventStore.Tests;
+using NServiceBus.Internal;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.Config;
 using NServiceBus.Unicast.Transport;
 using NUnit.Framework;
 

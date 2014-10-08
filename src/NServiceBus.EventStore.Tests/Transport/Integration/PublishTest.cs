@@ -1,6 +1,7 @@
 ﻿using System;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
+using NServiceBus.Internal;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Unicast.Messages;
@@ -56,15 +57,15 @@ namespace NServiceBus.AddIn.Tests.Integration
         }
 
 
-        public class EventA
+        public class EventA : IEvent
         {
         }
 
-        public class EventB
+        public class EventB : IEvent
         {
         }
 
-        public class EventC
+        public class EventC : IEvent
         {
         }
     }

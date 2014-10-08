@@ -1,5 +1,5 @@
 ﻿using EventStore.ClientAPI;
-using NServiceBus.Transports.EventStore.Config;
+using NServiceBus.Internal;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Unit

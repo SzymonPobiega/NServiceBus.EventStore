@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace NServiceBus.Transports.EventStore.Projections
+namespace NServiceBus.Internal.Projections
 {
     public class ProjectionInfo
     {

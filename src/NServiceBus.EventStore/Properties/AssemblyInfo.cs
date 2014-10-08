@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle("NServiceBus.AddIn")]
@@ -8,4 +9,5 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCompany("NServiceBus Ltd.")]
 [assembly: AssemblyConfiguration("release")]
 [assembly: ComVisible(false)]
+[assembly: InternalsVisibleTo("NServiceBus.EventStore.Tests")]
 

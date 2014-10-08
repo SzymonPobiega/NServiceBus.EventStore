@@ -1,13 +1,13 @@
 ﻿using NServiceBus.Configuration.AdvanceExtensibility;
 using NServiceBus.Features;
+using NServiceBus.Internal;
 using NServiceBus.Transports;
-using NServiceBus.Transports.EventStore.Serializers.Json;
 
 namespace NServiceBus
 {
-    public class EventStoreTransportDefinition : TransportDefinition
+    public class EventStoreTransport : TransportDefinition
     {
-        public EventStoreTransportDefinition()
+        public EventStoreTransport()
         {
             HasNativePubSubSupport = true;
             HasSupportForCentralizedPubSub = true;
@@ -16,17 +16,18 @@ namespace NServiceBus
 
         protected override void Configure(BusConfiguration config)
         {
+            config.UseSerialization<JsonSerializer>().Encoding(Json.UTF8NoBom);
+            config.EnableFeature<EventStoreConnectionManager>();
             config.EnableFeature<EventStoreTransportFeature>();
             config.EnableFeature<TimeoutManagerBasedDeferral>();
-            config.UseSerialization<JsonSerializer>().Encoding(JsonNoBomMessageSerializer.UTF8NoBom);
 
             config.GetSettings().EnableFeatureByDefault<TimeoutManager>();
 
             //enable the outbox unless the users hasn't disabled it
-            if (config.GetSettings().GetOrDefault<bool>(typeof(Features.Outbox).FullName))
-            {
-                config.EnableOutbox();
-            }
+            //if (config.GetSettings().GetOrDefault<bool>(typeof(Features.Outbox).FullName))
+            //{
+            //    config.EnableOutbox();
+            //}
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
 using NServiceBus.Unicast.Transport;
 
 namespace NServiceBus.Transports.EventStore
@@ -15,11 +16,12 @@ namespace NServiceBus.Transports.EventStore
             this.connectionManager = connectionManager;
         }
 
-        public void Init(Address address, 
-            TransactionSettings transactionSettings, 
-            Func<TransportMessage, bool> tryProcessMessage, 
+        public void Init(Address address,
+            TransactionSettings transactionSettings,
+            Func<TransportMessage, bool> tryProcessMessage,
             Action<TransportMessage, Exception> endProcessMessage)
         {
+            this.transactionSettings = transactionSettings;
             this.tryProcessMessage = tryProcessMessage;
             this.endProcessMessage = endProcessMessage;
             endpointAddress = address;
@@ -45,7 +47,7 @@ namespace NServiceBus.Transports.EventStore
                         return connectionManager.GetConnection()
                         .ConnectToPersistentSubscription(GetSubscriptionId(), incomingQueue, OnEvent, SubscriptionDropped);
                     }
-                    
+
                 })
                 .ToList();
         }
@@ -83,9 +85,13 @@ namespace NServiceBus.Transports.EventStore
                 }
                 finally
                 {
-                    endProcessMessage(transportMessage, processingError);
-                }   
-            }            
+                    endProcessMessage(transportMessage, processingError);                    
+                }
+                if (!transactionSettings.IsTransactional)
+                {
+                    return;
+                }
+            }
         }
 
         public void Stop()
@@ -96,9 +102,10 @@ namespace NServiceBus.Transports.EventStore
             }
         }
 
-        private Address endpointAddress;
-        private List<EventStorePersistentSubscription> subscriptions;
-        private Func<TransportMessage, bool> tryProcessMessage;
-        private Action<TransportMessage, Exception> endProcessMessage;
+        Address endpointAddress;
+        TransactionSettings transactionSettings;
+        List<EventStorePersistentSubscription> subscriptions;
+        Func<TransportMessage, bool> tryProcessMessage;
+        Action<TransportMessage, Exception> endProcessMessage;
     }
 }

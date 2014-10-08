@@ -5,8 +5,8 @@ using System.Net;
 using System.Threading;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
+using NServiceBus.Internal;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.Config;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests
@@ -38,20 +38,34 @@ namespace NServiceBus.AddIn.Tests
 
             ConnectionConfiguration = new ConnectionConfiguration(ConnectionSettings.Create().SetDefaultUserCredentials(AdminCredentials), null, TcpEndPoint, HttpEndPoint, "");
 
-            var projectionCreators = new AbstractProjectionCreator[]
-            {
-                new ReceiverSinkProjectionCreator(), 
-                new TransactionalRouterProjectionCreator(), 
-                new EventSourcedRouterProjectionCreator(), 
-                new SubscriptionsProjectionCreator(), 
-            };
+
+        }
+
+        protected void CreateQueues(Address address)
+        {
             using (var connectionManager = new DefaultConnectionManager(ConnectionConfiguration))
             {
-                foreach (var projectionCreator in projectionCreators)
-                {
-                    projectionCreator.ConnectionManager = connectionManager;
-                    projectionCreator.RegisterProjectionsFor(null);
-                }
+                var projectionCreators = new AbstractProjectionCreator[]
+                    {
+                        new ReceiverSinkProjectionCreator
+                            {
+                                ConnectionManager = connectionManager
+                            },
+                        new TransactionalRouterProjectionCreator
+                            {
+                                ConnectionManager = connectionManager
+                            },
+                        new EventSourcedRouterProjectionCreator
+                            {
+                                ConnectionManager = connectionManager
+                            },
+                        new SubscriptionsProjectionCreator
+                            {
+                                ConnectionManager = connectionManager
+                            },
+                    };
+                var queueCreator = new EventStoreQueueCreator(projectionCreators, connectionManager);
+                queueCreator.CreateQueueIfNecessary(address, null);
             }
         }
 

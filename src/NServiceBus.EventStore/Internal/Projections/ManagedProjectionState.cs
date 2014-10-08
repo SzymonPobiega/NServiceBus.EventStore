@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Transports.EventStore.Projections
+﻿namespace NServiceBus.Internal.Projections
 {
     public enum ManagedProjectionState
     {

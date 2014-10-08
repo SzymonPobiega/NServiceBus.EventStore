@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Transports.EventStore
+﻿namespace NServiceBus.Internal
 {
     public interface IRegisterProjections
     {

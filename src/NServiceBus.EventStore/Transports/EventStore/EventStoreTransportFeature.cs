@@ -1,25 +1,18 @@
-﻿using NServiceBus.Config;
-using NServiceBus.Settings;
+﻿using NServiceBus.Internal;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.Config;
-using NServiceBus.Unicast.Transport;
 
 namespace NServiceBus.Features
 {
-    internal class EventStoreTransportFeature : ConfigureTransport
+    class EventStoreTransportFeature : ConfigureTransport
     {
+        public EventStoreTransportFeature()
+        {
+            DependsOn<EventStoreConnectionManager>();
+        }
+
         protected override void Configure(FeatureConfigurationContext context, string connectionString)
         {            
-            if (!context.Container.HasComponent<IConnectionConfiguration>())
-            {
-                var connectionConfiguration = new ConnectionStringParser().Parse(connectionString);
-
-                context.Container.RegisterSingleton<IConnectionConfiguration>(connectionConfiguration);
-                context.Container.ConfigureComponent<DefaultConnectionManager>(DependencyLifecycle.SingleInstance);
-
-            }
-
             var localAddress = context.Settings.LocalAddress();
             context.Container.ConfigureComponent<EventSourcedUnitOfWork>(DependencyLifecycle.InstancePerUnitOfWork)
                            .ConfigureProperty(p => p.EndpointAddress, localAddress);
@@ -31,15 +24,23 @@ namespace NServiceBus.Features
             context.Container.ConfigureComponent<MessagePublisher>(DependencyLifecycle.InstancePerCall)
                 .ConfigureProperty(p => p.EndpointAddress, localAddress);
 
-            context.Container.ConfigureComponent<RouterProjectionCreator>(DependencyLifecycle.InstancePerCall);
+            context.Container.ConfigureComponent<EventSourcedRouterProjectionCreator>(DependencyLifecycle.InstancePerCall);
+            context.Container.ConfigureComponent<TransactionalRouterProjectionCreator>(DependencyLifecycle.InstancePerCall);
             context.Container.ConfigureComponent<SubscriptionsProjectionCreator>(DependencyLifecycle.InstancePerCall);
             context.Container.ConfigureComponent<ReceiverSinkProjectionCreator>(DependencyLifecycle.InstancePerCall);
-            context.Container.ConfigureComponent<CompositeQueueCreator>(DependencyLifecycle.InstancePerCall);
+            context.Container.ConfigureComponent<EventStoreQueueCreator>(DependencyLifecycle.InstancePerCall);
             context.Container.ConfigureComponent<DequeueStrategy>(DependencyLifecycle.InstancePerCall);
             context.Container.ConfigureComponent<SubscriptionManager>(DependencyLifecycle.SingleInstance)
                        .ConfigureProperty(p => p.EndpointAddress, localAddress);
 
-            context.Container.ConfigureComponent<DefaultConnectionManager>(DependencyLifecycle.SingleInstance);
+        }
+
+        /// <summary>
+        /// Returns false. Uses shared connection configured via <see cref="EventStoreConnectionManager"/> feature.
+        /// </summary>
+        protected override bool RequiresConnectionString
+        {
+            get { return false; }
         }
 
         protected override string ExampleConnectionStringForErrorMessage

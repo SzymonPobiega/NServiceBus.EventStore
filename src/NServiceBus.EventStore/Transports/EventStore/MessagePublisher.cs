@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Transactions;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
 using NServiceBus.Unicast;
 
 namespace NServiceBus.Transports.EventStore
@@ -25,7 +26,7 @@ namespace NServiceBus.Transports.EventStore
 
         public void Publish(TransportMessage message, PublishOptions publishOptions)
         {
-            var eventData = message.ToEventEventData();
+            var eventData = message.ToEventEventData(publishOptions.ReplyToAddress);
 
             if (eventSourcedUnitOfWork.IsInitialized)
             {

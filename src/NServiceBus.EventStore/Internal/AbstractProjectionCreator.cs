@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Linq;
-using NServiceBus.Transports.EventStore.Projections;
+using NServiceBus.Internal.Projections;
 
-namespace NServiceBus.Transports.EventStore
+namespace NServiceBus.Internal
 {
-    public abstract class AbstractProjectionCreator : IRegisterProjections
+    abstract class AbstractProjectionCreator : IRegisterProjections
     {
         private const string ByCategoryProjection = "$by_category";
         protected abstract string GetQuery();

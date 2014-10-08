@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace NServiceBus.Transports.EventStore.Projections
+namespace NServiceBus.Internal.Projections
 {
     public interface IProjectionsManager
     {

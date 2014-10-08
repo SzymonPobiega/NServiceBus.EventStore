@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using NServiceBus.EventStore.Tests;
-using NServiceBus.Serializers.Json;
+using NServiceBus.Internal;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.Serializers.Json;
 using NServiceBus.Unicast;
-using NServiceBus.Unicast.Messages;
 
 namespace NServiceBus.AddIn.Tests.Integration
 {
@@ -20,6 +17,7 @@ namespace NServiceBus.AddIn.Tests.Integration
                 {
                     EndpointAddress = senderAddress
                 };
+            
             return CreateSender(senderAddress, eventSourcedUnitOfWork);
         }
 
@@ -30,6 +28,7 @@ namespace NServiceBus.AddIn.Tests.Integration
             {
                 EndpointAddress = senderAddress
             };
+            CreateQueues(senderAddress);
             return new MessageSender(transactionalUnitOfWork, eventSourcedUnitOfWork, connectionManager)
             {
                 EndpointAddress = senderAddress
@@ -47,7 +46,7 @@ namespace NServiceBus.AddIn.Tests.Integration
                 {
                     EndpointAddress = sourceAddress
                 };
-
+            CreateQueues(sourceAddress);
             return new MessagePublisher(transactionalUnitOfWork, eventSourcedUnitOfWork, connectionManager)
                 {
                     EndpointAddress = sourceAddress
@@ -112,7 +111,7 @@ namespace NServiceBus.AddIn.Tests.Integration
             var message = new TransportMessage()
             {
                 CorrelationId = "correlation",
-                Body = JsonNoBomMessageSerializer.UTF8NoBom.GetBytes(string.Format("{{\"number\" : {0}}}", number))
+                Body = Json.UTF8NoBom.GetBytes(string.Format("{{\"number\" : {0}}}", number))
             };
             message.Headers[Headers.EnclosedMessageTypes] = messageTypes;
             message.Headers[Headers.ContentType] = ContentTypes.Json;

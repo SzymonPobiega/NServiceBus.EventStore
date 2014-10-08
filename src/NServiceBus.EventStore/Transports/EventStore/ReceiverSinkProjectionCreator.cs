@@ -1,6 +1,8 @@
+using NServiceBus.Internal;
+
 namespace NServiceBus.Transports.EventStore
 {
-    public class ReceiverSinkProjectionCreator : AbstractProjectionCreator
+    class ReceiverSinkProjectionCreator : AbstractProjectionCreator
     {
         protected override string GetName()
         {

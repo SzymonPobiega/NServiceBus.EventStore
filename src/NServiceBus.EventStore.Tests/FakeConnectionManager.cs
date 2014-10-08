@@ -1,7 +1,8 @@
 ﻿using EventStore.ClientAPI;
+using NServiceBus.Internal;
+using NServiceBus.Internal.Projections;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
-using NServiceBus.Transports.EventStore.Projections;
 
 namespace NServiceBus.AddIn.Tests
 {

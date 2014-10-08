@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Transactions;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
 
 namespace NServiceBus.Transports.EventStore
 {

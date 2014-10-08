@@ -1,6 +1,8 @@
-﻿namespace NServiceBus.Transports.EventStore
+﻿using NServiceBus.Internal;
+
+namespace NServiceBus.Transports.EventStore
 {
-    public abstract class RouterProjectionCreator : AbstractProjectionCreator
+    abstract class RouterProjectionCreator : AbstractProjectionCreator
     {
         
         protected override string GetQuery()

@@ -1,7 +1,7 @@
 ﻿using EventStore.ClientAPI;
-using NServiceBus.Transports.EventStore.Projections;
+using NServiceBus.Internal.Projections;
 
-namespace NServiceBus.Transports.EventStore.Config
+namespace NServiceBus.Internal
 {
     public interface IConnectionConfiguration
     {

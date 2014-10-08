@@ -1,9 +1,8 @@
 ﻿using System;
 using EventStore.ClientAPI;
-using NServiceBus.Transports.EventStore.Config;
-using NServiceBus.Transports.EventStore.Projections;
+using NServiceBus.Internal.Projections;
 
-namespace NServiceBus.Transports.EventStore
+namespace NServiceBus.Internal
 {
     public class DefaultConnectionManager : IManageEventStoreConnections, IDisposable
     {

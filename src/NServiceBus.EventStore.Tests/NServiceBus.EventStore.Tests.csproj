@@ -72,7 +72,6 @@
     <Compile Include="SagaPersistence\Integration\FaultyConnectionManager.cs" />
     <Compile Include="SagaPersistence\Integration\SagaPersisterTests.cs" />
     <Compile Include="SagaPersistence\Integration\TestSaga.cs" />
-    <Compile Include="Json.cs" />
     <Compile Include="Transport\Integration\NonTransactionalPolymorphicPublishTests.cs" />
     <Compile Include="Transport\Integration\PolymorphicPublishTest.cs" />
     <Compile Include="Transport\Integration\EventSourcedSendAndReceiveTests.cs" />

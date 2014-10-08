@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using EventStore.ClientAPI.SystemData;
 
-namespace NServiceBus.Transports.EventStore.Config
+namespace NServiceBus.Internal
 {
     public class ConnectionStringParser : IConnectionStringParser
     {
@@ -13,6 +13,7 @@ namespace NServiceBus.Transports.EventStore.Config
                     new PropertyParser((p, b) => b.Name = p["name"], "name"),
                     new PropertyParser((p, b) => b.ConnectionSettings.SetDefaultUserCredentials(new UserCredentials(p["user"],p["password"])), "user","password"),
 
+                    new PropertyParser((p, b) => b.ConnectionSettings.EnableVerboseLogging(), "verboseLogging"),
                     new PropertyParser((p, b) => b.ConnectionSettings.KeepRetrying(), "keepRetrying"),
                     new PropertyParser((p, b) => b.ConnectionSettings.KeepReconnecting(), "keepReconnecting"),
                     new PropertyParser((p, b) => b.ConnectionSettings.PerformOnMasterOnly(), "readFromMaster"),

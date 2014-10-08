@@ -1,6 +1,6 @@
 ﻿namespace NServiceBus.Transports.EventStore
 {
-    public class TransactionalRouterProjectionCreator : RouterProjectionCreator
+    class TransactionalRouterProjectionCreator : RouterProjectionCreator
     {
         protected override string GetName()
         {

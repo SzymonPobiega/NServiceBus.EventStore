@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using NServiceBus.Transports.EventStore.Projections;
+using NServiceBus.Internal.Projections;
 
 namespace NServiceBus.AddIn.Tests
 {

@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using EventStore.ClientAPI;
 
-namespace NServiceBus.Transports.EventStore.Config
+namespace NServiceBus.Internal
 {
     public class ConnectionConfigurationBuilder
     {

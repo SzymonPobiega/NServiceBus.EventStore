@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore", "NServiceBus.EventStore\NServiceBus.EventStore.csproj", "{BA731749-22C7-4025-8A4D-465AE8E02E61}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore.Tests", "NServiceBus.EventStore.Tests\NServiceBus.EventStore.Tests.csproj", "{8B773CFD-E0F8-402F-AABC-04580289C76A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore.AcceptanceTests", "NServiceBus.EventStore.AcceptanceTests\NServiceBus.EventStore.AcceptanceTests.csproj", "{CC961210-A74B-4DF1-A0BD-A52E011D3BF9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +21,10 @@ Global
 		{8B773CFD-E0F8-402F-AABC-04580289C76A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8B773CFD-E0F8-402F-AABC-04580289C76A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8B773CFD-E0F8-402F-AABC-04580289C76A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC961210-A74B-4DF1-A0BD-A52E011D3BF9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC961210-A74B-4DF1-A0BD-A52E011D3BF9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC961210-A74B-4DF1-A0BD-A52E011D3BF9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC961210-A74B-4DF1-A0BD-A52E011D3BF9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using EventStore.ClientAPI;
-using NServiceBus.Transports.EventStore.Serializers.Json;
+using NServiceBus.Internal;
 using NServiceBus.UnitOfWork;
 
 namespace NServiceBus.Transports.EventStore

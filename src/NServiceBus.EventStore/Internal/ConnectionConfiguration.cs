@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Net;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Common.Log;
-using NServiceBus.Transports.EventStore.Projections;
+using NServiceBus.Internal.Projections;
 
-namespace NServiceBus.Transports.EventStore.Config
+namespace NServiceBus.Internal
 {
     public class ConnectionConfiguration : IConnectionConfiguration
     {

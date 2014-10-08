@@ -1,5 +1,6 @@
 ﻿using System.Transactions;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
 using NServiceBus.Unicast;
 
 namespace NServiceBus.Transports.EventStore
@@ -22,7 +23,7 @@ namespace NServiceBus.Transports.EventStore
         public void Send(TransportMessage message, SendOptions sendOptions)
         {
             var destination = sendOptions.Destination;
-            var eventData = message.ToIndirectCommandEventData(destination);
+            var eventData = message.ToIndirectCommandEventData(destination, sendOptions.ReplyToAddress);
             if (eventSourcedUnitOfWork.IsInitialized)
             {
                 eventSourcedUnitOfWork.Publish(eventData);

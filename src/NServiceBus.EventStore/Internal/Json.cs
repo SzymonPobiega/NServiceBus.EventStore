@@ -1,12 +1,10 @@
-using System;
-using System.Xml;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Formatting = Newtonsoft.Json.Formatting;
 
-namespace NServiceBus.Transports.EventStore.Serializers.Json
+namespace NServiceBus.Internal
 {
     static class Json
     {
@@ -24,7 +22,7 @@ namespace NServiceBus.Transports.EventStore.Serializers.Json
         public static byte[] ToJsonBytes(this object source)
         {
             string instring = JsonConvert.SerializeObject(source, Formatting.Indented, JsonSettings);
-            return JsonNoBomMessageSerializer.UTF8NoBom.GetBytes(instring);
+            return UTF8NoBom.GetBytes(instring);
         }
 
         public static string ToJson(this object source)
@@ -41,9 +39,10 @@ namespace NServiceBus.Transports.EventStore.Serializers.Json
 
         public static T ParseJson<T>(this byte[] json)
         {
-            var result = JsonConvert.DeserializeObject<T>(JsonNoBomMessageSerializer.UTF8NoBom.GetString(json), JsonSettings);
+            var result = JsonConvert.DeserializeObject<T>(UTF8NoBom.GetString(json), JsonSettings);
             return result;
         }
 
+        public static readonly UTF8Encoding UTF8NoBom = new UTF8Encoding(false);
     }
 }

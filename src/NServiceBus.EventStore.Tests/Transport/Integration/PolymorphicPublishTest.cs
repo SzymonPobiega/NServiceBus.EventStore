@@ -1,6 +1,7 @@
 ﻿using System;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Common.Log;
+using NServiceBus.Internal;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Unicast.Messages;

@@ -1,6 +1,6 @@
 ﻿using System;
 using EventStore.ClientAPI;
-using NServiceBus.Transports.EventStore.Serializers.Json;
+using NServiceBus.Internal;
 
 namespace NServiceBus.Transports.EventStore
 {

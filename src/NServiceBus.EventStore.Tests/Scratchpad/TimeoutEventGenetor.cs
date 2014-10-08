@@ -2,8 +2,7 @@
 using System.Linq;
 using System.Net;
 using EventStore.ClientAPI;
-using NServiceBus.AddIn.Tests.Integration;
-using NServiceBus.EventStore.Tests;
+using NServiceBus.Internal;
 using NUnit.Framework;
 
 namespace NServiceBus.AddIn.Tests.Scratchpad

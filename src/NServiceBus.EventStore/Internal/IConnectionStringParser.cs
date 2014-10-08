@@ -1,4 +1,4 @@
-﻿namespace NServiceBus.Transports.EventStore.Config
+﻿namespace NServiceBus.Internal
 {
     public interface IConnectionStringParser
     {
