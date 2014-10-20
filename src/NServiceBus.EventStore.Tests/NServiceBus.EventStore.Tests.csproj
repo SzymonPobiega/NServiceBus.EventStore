@@ -69,23 +69,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IntegrationTest.cs" />
-    <Compile Include="SagaPersistence\Integration\FaultyConnectionManager.cs" />
-    <Compile Include="SagaPersistence\Integration\SagaPersisterTests.cs" />
-    <Compile Include="SagaPersistence\Integration\TestSaga.cs" />
-    <Compile Include="Transport\Integration\NonTransactionalPolymorphicPublishTests.cs" />
-    <Compile Include="Transport\Integration\PolymorphicPublishTest.cs" />
-    <Compile Include="Transport\Integration\EventSourcedSendAndReceiveTests.cs" />
-    <Compile Include="Transport\Integration\NonTransactionalPublishTests.cs" />
-    <Compile Include="Transport\Integration\PublishTest.cs" />
-    <Compile Include="Transport\Integration\Probe.cs" />
-    <Compile Include="Transport\Integration\TransportIntegrationTest.cs" />
-    <Compile Include="Transport\Integration\TransactionalPolymorphicPublishTests.cs" />
-    <Compile Include="Transport\Integration\TransactionalPublishTests.cs" />
-    <Compile Include="Transport\Integration\TransactionalSendAndReceiveTests.cs" />
-    <Compile Include="Transport\Integration\NonTransactionalSendAndReceiveTests.cs" />
-    <Compile Include="Scratchpad\TimeoutEventGenetor.cs" />
-    <Compile Include="Transport\Unit\ConnectionStringParserTests.cs" />
-    <Compile Include="Transport\Unit\EventStoreUnitOfWorkTests.cs" />
+    <Compile Include="SagaPersistence\FaultyConnectionManager.cs" />
+    <Compile Include="SagaPersistence\SagaPersisterTests.cs" />
+    <Compile Include="SagaPersistence\TestSaga.cs" />
+    <Compile Include="Transport\NonTransactionalPolymorphicPublishTests.cs" />
+    <Compile Include="Transport\PolymorphicPublishTest.cs" />
+    <Compile Include="Transport\EventSourcedSendAndReceiveTests.cs" />
+    <Compile Include="Transport\NonTransactionalPublishTests.cs" />
+    <Compile Include="Transport\PublishTest.cs" />
+    <Compile Include="Transport\Probe.cs" />
+    <Compile Include="Transport\TransportIntegrationTest.cs" />
+    <Compile Include="Transport\TransactionalPolymorphicPublishTests.cs" />
+    <Compile Include="Transport\TransactionalPublishTests.cs" />
+    <Compile Include="Transport\TransactionalSendAndReceiveTests.cs" />
+    <Compile Include="Transport\NonTransactionalSendAndReceiveTests.cs" />
+    <Compile Include="Transport\ConnectionStringParserTests.cs" />
     <Compile Include="FakeConnectionManager.cs" />
     <Compile Include="FakeProjectionsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -102,5 +100,6 @@
       <Name>NServiceBus.EventStore</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

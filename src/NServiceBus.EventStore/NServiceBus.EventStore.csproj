@@ -130,9 +130,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Fody.targets">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
