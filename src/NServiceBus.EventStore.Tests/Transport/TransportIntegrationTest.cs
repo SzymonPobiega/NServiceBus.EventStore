@@ -6,7 +6,7 @@ using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NServiceBus.Unicast;
 
-namespace NServiceBus.AddIn.Tests.Integration
+namespace NServiceBus.EventStore.Tests.Transport
 {
     public abstract class TransportIntegrationTest : IntegrationTest
     {

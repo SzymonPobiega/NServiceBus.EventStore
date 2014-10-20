@@ -1,7 +1,7 @@
 ﻿using System;
 using NServiceBus.Saga;
 
-namespace NServiceBus.AddIn.Tests.SagaPersistence.Integration
+namespace NServiceBus.EventStore.Tests.SagaPersistence
 {
     public class TestSaga : IContainSagaData
     {

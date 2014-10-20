@@ -3,9 +3,8 @@ using System.Linq;
 using EventStore.ClientAPI;
 using NServiceBus.Internal;
 using NServiceBus.Internal.Projections;
-using NServiceBus.Transports.EventStore;
 
-namespace NServiceBus.AddIn.Tests.SagaPersistence.Integration
+namespace NServiceBus.EventStore.Tests.SagaPersistence
 {
     public class FaultyConnectionManager : IManageEventStoreConnections
     {

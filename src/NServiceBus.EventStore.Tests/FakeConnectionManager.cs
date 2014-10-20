@@ -1,10 +1,8 @@
 ﻿using EventStore.ClientAPI;
 using NServiceBus.Internal;
 using NServiceBus.Internal.Projections;
-using NServiceBus.Transports;
-using NServiceBus.Transports.EventStore;
 
-namespace NServiceBus.AddIn.Tests
+namespace NServiceBus.EventStore.Tests
 {
     public class FakeConnectionManager : IManageEventStoreConnections
     {

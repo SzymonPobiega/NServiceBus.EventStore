@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using EventStore.ClientAPI.Exceptions;
 using NServiceBus.Internal;
 using NServiceBus.Persistence.EventStore.SagaPersister;
-using NServiceBus.Transports.EventStore;
 using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests.SagaPersistence.Integration
+namespace NServiceBus.EventStore.Tests.SagaPersistence
 {
     [TestFixture]
     public class SagaPersisterTests : IntegrationTest

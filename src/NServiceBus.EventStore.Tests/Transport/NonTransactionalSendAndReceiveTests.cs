@@ -1,12 +1,6 @@
-﻿using System;
-using System.Transactions;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Common.Log;
-using NServiceBus.Transports;
-using NServiceBus.Transports.EventStore;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests.Integration
+namespace NServiceBus.EventStore.Tests.Transport
 {
     [TestFixture]
     public class NonTransactionalSendAndReceiveTests : TransportIntegrationTest

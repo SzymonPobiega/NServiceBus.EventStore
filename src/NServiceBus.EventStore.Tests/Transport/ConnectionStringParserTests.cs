@@ -2,7 +2,7 @@
 using NServiceBus.Internal;
 using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests.Unit
+namespace NServiceBus.EventStore.Tests.Transport
 {
     [TestFixture]
     public class ConnectionStringParserTests

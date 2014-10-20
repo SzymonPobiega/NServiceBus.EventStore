@@ -1,12 +1,9 @@
-﻿using System;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Common.Log;
+﻿using EventStore.ClientAPI;
 using NServiceBus.Internal;
-using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests.Integration
+namespace NServiceBus.EventStore.Tests.Transport
 {
     [TestFixture]
     public class EventSourcedSendAndReceiveTests : TransportIntegrationTest

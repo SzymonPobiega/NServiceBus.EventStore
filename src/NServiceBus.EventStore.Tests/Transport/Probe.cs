@@ -6,7 +6,7 @@ using NServiceBus.Transports.EventStore;
 using NServiceBus.Unicast.Transport;
 using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests.Integration
+namespace NServiceBus.EventStore.Tests.Transport
 {
     public class ReceiveTask
     {

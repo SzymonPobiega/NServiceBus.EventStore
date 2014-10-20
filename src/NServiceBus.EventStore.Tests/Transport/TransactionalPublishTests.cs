@@ -3,7 +3,7 @@ using System.Transactions;
 using NServiceBus.Transports;
 using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests.Integration
+namespace NServiceBus.EventStore.Tests.Transport
 {
     [TestFixture]
     public class TransactionalPublishTests : PublishTest

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using NServiceBus.Internal.Projections;
 
-namespace NServiceBus.AddIn.Tests
+namespace NServiceBus.EventStore.Tests
 {
     public class FakeProjectionsManager : IProjectionsManager
     {

@@ -1,6 +1,4 @@
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.Net;
 using System.Threading;
 using EventStore.ClientAPI;
@@ -9,7 +7,7 @@ using NServiceBus.Internal;
 using NServiceBus.Transports.EventStore;
 using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests
+namespace NServiceBus.EventStore.Tests
 {
     public abstract class IntegrationTest
     {

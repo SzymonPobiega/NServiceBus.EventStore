@@ -1,7 +1,7 @@
 ﻿using System.Transactions;
 using NUnit.Framework;
 
-namespace NServiceBus.AddIn.Tests.Integration
+namespace NServiceBus.EventStore.Tests.Transport
 {
     [TestFixture]
     public class TransactionalSendAndReceiveTests : TransportIntegrationTest
