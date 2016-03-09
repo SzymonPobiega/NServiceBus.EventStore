@@ -34,8 +34,7 @@ namespace NServiceBus.Transports.EventStore
             subscribers = s[e.eventType] || [];
             for (var i = 0; i < subscribers.length; i++) {
                 e.metadata.destinationQueue = subscribers[i];
-                emit('inputQueue-' + subscribers[i] + '_events', e.eventType, e.data, e.metadata);
-                //linkTo('inputQueue-' + subscribers[i] + '_events', e, linkMeta);
+                emit('inputs-' + subscribers[i] + '_events', e.eventType, e.data, e.metadata);
             }
         }
     }

@@ -11,7 +11,7 @@ namespace NServiceBus.Transports.EventStore
 
         protected override string GetQuery()
         {
-            return @"fromCategory('inputQueue')
+            return @"fromCategory('inputs')
 .when({
 	$any: function (s, e) {
         if (e.eventType[0] !== '$') {

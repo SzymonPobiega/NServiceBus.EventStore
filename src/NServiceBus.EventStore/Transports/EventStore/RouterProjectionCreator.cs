@@ -12,7 +12,7 @@ namespace NServiceBus.Transports.EventStore
 	$any: function (s, e) {
 		if (typeof e.metadata.destinationQueue !== 'undefined') {
             var dest = e.metadata.destinationQueue;
-			linkTo('inputQueue-' + dest + '_commands', e);
+			linkTo('inputs-' + dest + '_commands', e);
 		} else {
 			var atomicTypes = e.eventType.split(';');
 		    for (var i = 0; i < atomicTypes.length; i++) {

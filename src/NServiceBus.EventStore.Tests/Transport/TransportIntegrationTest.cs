@@ -56,7 +56,7 @@ namespace NServiceBus.EventStore.Tests.Transport
 
         protected Address GenerateAddress(string suffix)
         {
-            return new Address(GetType().Name + "_" + suffix + "_" + DateTime.Now.ToString("yy_MM_dd#HH_mm_ss"), null);
+            return new Address(GetType().Name + "_" + suffix + "_" + DateTime.Now.ToString("yy_MM_dd_HH_mm_ss"), null);
         }
     }
 

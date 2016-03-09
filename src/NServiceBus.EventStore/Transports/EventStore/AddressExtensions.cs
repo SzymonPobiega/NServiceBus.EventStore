@@ -9,7 +9,7 @@
 
         public static string GetInputQueueStream(this Address address)
         {
-            return address.Queue;
+            return  address.Queue;
         }
     }
 }
