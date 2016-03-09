@@ -2,19 +2,18 @@
 <package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>NServiceBus.EventStore</id>
-    <title>NServiceBus EventStore</title>
-    <version>5.0.0-beta0001</version>
-    <authors>Szymon Pobiega</authors>
-    <owners>Szymon Pobiega</owners>
-    <licenseUrl>http://particular.net/LicenseAgreement</licenseUrl>
-    <projectUrl>http://particular.net/</projectUrl>
-    <iconUrl>http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</iconUrl>
-    <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>EventStore based transport for NServiceBus</description>
-    <releaseNotes>
-    </releaseNotes>
-    <copyright>Copyright 2013-2014 Szymon Pobiega. All rights reserved</copyright>
-    <tags>nservicebus eventstore geteventstore servicebus msmq cqrs publish subscribe</tags>
+    <title>NServiceBus.EventStore</title>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <owners>$owners$</owners>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <iconUrl>$iconUrl$</iconUrl>
+    <requireLicenseAcceptance>$requireLicenseAcceptance$</requireLicenseAcceptance>
+    <description>The most popular open-source service bus for .NET</description>
+    <releaseNotes></releaseNotes>
+    <copyright>$copyright$</copyright>
+    <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
     <dependencies>
       <dependency id="NServiceBus" version="[5.0.0.0, 6.0.0.0)" />
       <dependency id="EventStore.Client" version="[2.0.2, 3.0.0)" />
@@ -22,6 +21,5 @@
   </metadata>
   <files>
     <file src="..\..\binaries\NServiceBus.EventStore.dll" target="lib\net40" /> 
-	<file src="..\..\src\NServiceBus.EventStore\**\*.cs" target="src\NServiceBus.EventStore" />	
   </files>
 </package>
