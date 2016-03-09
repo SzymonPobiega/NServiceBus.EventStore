@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using NServiceBus.Transports.EventStore.Projections;
+using NServiceBus.Internal.Projections;
 
-namespace NServiceBus.AddIn.Tests
+namespace NServiceBus.EventStore.Tests
 {
     public class FakeProjectionsManager : IProjectionsManager
     {
@@ -40,6 +40,10 @@ namespace NServiceBus.AddIn.Tests
         public IList<ProjectionInfo> List()
         {
             throw new System.NotImplementedException();
+        }
+
+        public void Stop(string projectionName)
+        {
         }
 
         public void Enable(string projectionName)

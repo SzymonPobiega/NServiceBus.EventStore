@@ -3,9 +3,9 @@
   <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <id>NServiceBus.EventStore</id>
     <title>NServiceBus EventStore</title>
-    <version>4.0.0-alpha0</version>
-    <authors>NServiceBus Ltd</authors>
-    <owners>Udi Dahan, Andreas Ohlund, John Simons</owners>
+    <version>5.0.0-beta0001</version>
+    <authors>Szymon Pobiega</authors>
+    <owners>Szymon Pobiega</owners>
     <licenseUrl>http://particular.net/LicenseAgreement</licenseUrl>
     <projectUrl>http://particular.net/</projectUrl>
     <iconUrl>http://s3.amazonaws.com/nuget.images/NServiceBus_32.png</iconUrl>
@@ -13,14 +13,15 @@
     <description>EventStore based transport for NServiceBus</description>
     <releaseNotes>
     </releaseNotes>
-    <copyright>Copyright 2010-2013 NServiceBus. All rights reserved</copyright>
+    <copyright>Copyright 2013-2014 Szymon Pobiega. All rights reserved</copyright>
     <tags>nservicebus eventstore geteventstore servicebus msmq cqrs publish subscribe</tags>
     <dependencies>
-      <dependency id="NServiceBus" />
-      <dependency id="NServiceBus.Interfaces" />
+      <dependency id="NServiceBus" version="[5.0.0.0, 6.0.0.0)" />
+      <dependency id="EventStore.Client" version="[2.0.2, 3.0.0)" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\binaries\NServiceBus.Transports.EventStore.dll" target="lib\net40" />        
+    <file src="..\..\binaries\NServiceBus.EventStore.dll" target="lib\net40" /> 
+	<file src="..\..\src\NServiceBus.EventStore\**\*.cs" target="src\NServiceBus.EventStore" />	
   </files>
 </package>

@@ -32,3 +32,5 @@ csx
 *.ncrunchproject
 *.ncrunchsolution
 _NCrunch_NServiceBus/*
+src/NServiceBus.EventStore.AcceptanceTests/App_Packages/
+nugets/
