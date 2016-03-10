@@ -14,7 +14,7 @@ namespace NServiceBus.EventStore.Tests.Transport
         private int actualCount;
         private readonly int targetCount;
         private readonly TimeSpan timeout;
-        private DequeueStrategy dequeueStrategy;
+        private MessagePump messagePump;
         private readonly IConnectionConfiguration connectionConfiguration;
         private readonly Address address;
 
@@ -38,9 +38,9 @@ namespace NServiceBus.EventStore.Tests.Transport
 
         public void Start()
         {
-            dequeueStrategy = new DequeueStrategy(new DefaultConnectionManager(connectionConfiguration));
+            messagePump = new MessagePump(new DefaultConnectionManager(connectionConfiguration));
             Event = new ManualResetEventSlim();
-            dequeueStrategy.Init(address, new TransactionSettings(true, TimeSpan.FromSeconds(60), IsolationLevel.Serializable, 0, false, false), 
+            messagePump.Init(address, new TransactionSettings(true, TimeSpan.FromSeconds(60), IsolationLevel.Serializable, 0, false, false), 
                                  x =>
                                      {
                                          if (Interlocked.Increment(ref actualCount) == TargetCount)
@@ -53,13 +53,13 @@ namespace NServiceBus.EventStore.Tests.Transport
                                      {
 
                                      });
-            dequeueStrategy.Start(1);
+            messagePump.Start(1);
         }
 
         public bool Wait()
         {
             Event.Wait(timeout);
-            dequeueStrategy.Stop();
+            messagePump.Stop();
             return ActualCount == TargetCount;
         }
     }

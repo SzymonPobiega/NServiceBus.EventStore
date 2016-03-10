@@ -1,41 +1,42 @@
 ﻿using System;
+using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 
 namespace NServiceBus.Transports.EventStore
 {
-    public class SubscriptionManager : IManageSubscriptions
+    class SubscriptionManager : IManageSubscriptions
     {
-        public Address EndpointAddress { get; set; }
+        IManageEventStoreConnections connectionManager;
+        string endpointName;
 
-        private readonly IManageEventStoreConnections connectionManager;
-
-        public SubscriptionManager(IManageEventStoreConnections connectionManager)
+        public SubscriptionManager(IManageEventStoreConnections connectionManager, string endpointName)
         {
             this.connectionManager = connectionManager;
+            this.endpointName = endpointName;
         }
 
-        public void Subscribe(Type eventType, Address publisherAddress)
+        private Task ChangeSubscription(string action, Type eventType)
         {
-            ChangeSubscription("$subscribe", eventType);
-        }
-
-        private void ChangeSubscription(string action, Type eventType)
-        {
-            var data = new SubscriptionEvent()
+            var data = new SubscriptionEvent
             {
-                SubscriberEndpoint = EndpointAddress.Queue,
+                SubscriberEndpoint = endpointName,
                 EventType = eventType.AssemblyQualifiedName,
             };
-            connectionManager.GetConnection()
+            return connectionManager.GetConnection()
                 .AppendToStreamAsync("events-subscriptions", ExpectedVersion.Any,
-                    new EventData(Guid.NewGuid(), action, true, data.ToJsonBytes(), new byte[0]))
-                .Wait();
+                    new EventData(Guid.NewGuid(), action, true, data.ToJsonBytes(), new byte[0]));
         }
 
-        public void Unsubscribe(Type eventType, Address publisherAddress)
+        public Task Subscribe(Type eventType, ContextBag context)
         {
-            ChangeSubscription("$unsubscribe", eventType);
+            return ChangeSubscription("$subscribe", eventType);
+        }
+
+        public Task Unsubscribe(Type eventType, ContextBag context)
+        {
+            return ChangeSubscription("$unsubscribe", eventType);
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
 using NServiceBus.Transports;
 using NServiceBus.Transports.EventStore;
 
-namespace NServiceBus.Internal
+namespace NServiceBus
 {
     class EventStoreQueueCreator : ICreateQueues
     {
@@ -17,19 +19,12 @@ namespace NServiceBus.Internal
             this.connectionManager = connectionManager;
         }
 
-        public void CreateQueueIfNecessary(Address address, string account)
-        {
-            var groupName = address.Queue;
-            RegisterProjections(account);
-            EnsureSubscriptionGroupExists(groupName);
-        }
-
-        private void EnsureSubscriptionGroupExists(string groupName)
+        private void EnsureSubscriptionExists(string queue)
         {
             try
             {
                 var result = connectionManager.GetConnection()
-                    .CreatePersistentSubscriptionAsync(groupName, groupName,
+                    .CreatePersistentSubscriptionAsync(queue, queue,
                         PersistentSubscriptionSettingsBuilder.Create(), null)
                     .Result;
             }
@@ -37,7 +32,7 @@ namespace NServiceBus.Internal
             {
                 var inner = ex.InnerException as InvalidOperationException;
                 if (inner == null ||
-                    inner.Message != string.Format("Subscription group {0} on stream {0} alreay exists", groupName))
+                    inner.Message != string.Format("Subscription group {0} on stream {0} alreay exists", queue))
                 {
                     throw;
                 }
@@ -50,6 +45,16 @@ namespace NServiceBus.Internal
             {
                 creator.RegisterProjectionsFor(account);
             }
+        }
+
+        public Task CreateQueueIfNecessary(QueueBindings queueBindings, string identity)
+        {
+            RegisterProjections(identity);
+            foreach (var queueBinding in queueBindings.ReceivingAddresses)
+            {
+                EnsureSubscriptionExists(queueBinding);
+            }
+            return Task.FromResult(0);
         }
     }
 }
