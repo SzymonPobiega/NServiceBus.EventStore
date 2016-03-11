@@ -10,11 +10,12 @@ using EventStore.ClientAPI.ClientOperations;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
+using NServiceBus.Transports;
 using NServiceBus.Unicast.Transport;
 
-namespace NServiceBus.Transports.EventStore
+namespace NServiceBus
 {
-    public class MessagePump : IPushMessages
+    class MessagePump : IPushMessages
     {
 
         public MessagePump(IConnectionConfiguration connectionConfiguration)

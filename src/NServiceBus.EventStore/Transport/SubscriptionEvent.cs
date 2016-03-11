@@ -1,6 +1,6 @@
-﻿namespace NServiceBus.Transports.EventStore
+﻿namespace NServiceBus
 {
-    public class SubscriptionEvent
+    class SubscriptionEvent
     {
         public string SubscriberEndpoint { get; set; }
         public string EventType { get; set; }

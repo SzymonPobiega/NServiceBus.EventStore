@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace NServiceBus.Transports.EventStore
+namespace NServiceBus
 {
-    public class EventStoreMessageMetadata
+    class EventStoreMessageMetadata
     {
         public string DestinationQueue { get; set; }
         public string MessageId { get; set; }

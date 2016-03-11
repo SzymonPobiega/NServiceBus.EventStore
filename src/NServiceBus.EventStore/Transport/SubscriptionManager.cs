@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
+using NServiceBus.Transports;
 
-namespace NServiceBus.Transports.EventStore
+namespace NServiceBus
 {
     class SubscriptionManager : IManageSubscriptions
     {

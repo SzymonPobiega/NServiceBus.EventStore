@@ -1,6 +1,6 @@
 using NServiceBus.Internal;
 
-namespace NServiceBus.Transports.EventStore
+namespace NServiceBus
 {
     class ReceiverSinkProjectionCreator : AbstractProjectionCreator
     {

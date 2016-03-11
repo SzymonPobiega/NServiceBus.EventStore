@@ -7,9 +7,11 @@ using EventStore.ClientAPI;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Performance.TimeToBeReceived;
+using NServiceBus.Transports;
+using NServiceBus.Transports.EventStore;
 using NServiceBus.Unicast;
 
-namespace NServiceBus.Transports.EventStore
+namespace NServiceBus
 {
     class Dispatcher : IDispatchMessages
     {
