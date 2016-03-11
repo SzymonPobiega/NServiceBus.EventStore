@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NServiceBus.Configuration.AdvanceExtensibility;
 using NServiceBus.Features;
 using NServiceBus.Internal;
+using NServiceBus.Performance.TimeToBeReceived;
 using NServiceBus.Routing;
 using NServiceBus.Settings;
 using NServiceBus.Transports;
@@ -80,9 +81,13 @@ namespace NServiceBus
             }
             return queue.ToString();
         }
+        public override IEnumerable<Type> DeliveryConstraints { get; } = new[]
+        {
+            typeof(DiscardIfNotReceivedBefore)
+        };
 
-        public override IEnumerable<Type> DeliveryConstraints => new Type[0];
         public override TransportTransactionMode TransactionMode => TransportTransactionMode.ReceiveOnly;
+
         public override OutboundRoutingPolicy OutboundRoutingPolicy => new OutboundRoutingPolicy(OutboundRoutingType.Unicast, OutboundRoutingType.Multicast, OutboundRoutingType.Unicast);
     }
 }

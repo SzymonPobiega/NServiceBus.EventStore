@@ -100,10 +100,17 @@ namespace NServiceBus.Transports.EventStore
                 return null;
             }
             var metadata = evnt.Event.Metadata.ParseJson<EventStoreMessageMetadata>();
+            if (metadata.TimeToBeReceived.HasValue && metadata.TimeToBeReceived.Value < DateTime.UtcNow)
+            {
+                return null;
+            }
             var headers = metadata.Headers.ToDictionary(x => x.Key.ToPascalCase(), x => x.Value);
             var transportTransaction = new TransportTransaction();
             transportTransaction.Set(connection);
-            var context = new PushContext(metadata.MessageId, headers, new MemoryStream(evnt.Event.Data), transportTransaction, tokenSource, new ContextBag());
+            var data = metadata.Empty //because EventStore inserts {}
+                ? new byte[0] 
+                : evnt.Event.Data;
+            var context = new PushContext(metadata.MessageId, headers, new MemoryStream(data), transportTransaction, tokenSource, new ContextBag());
             return context;
         }
 

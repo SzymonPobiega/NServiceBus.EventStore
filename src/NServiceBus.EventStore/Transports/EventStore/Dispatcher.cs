@@ -6,6 +6,7 @@ using System.Transactions;
 using EventStore.ClientAPI;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
+using NServiceBus.Performance.TimeToBeReceived;
 using NServiceBus.Unicast;
 
 namespace NServiceBus.Transports.EventStore
@@ -48,6 +49,11 @@ namespace NServiceBus.Transports.EventStore
             {
                 DestinationQueue = operation.Destination,
             };
+            var timeToBeReceived = operation.DeliveryConstraints.OfType<DiscardIfNotReceivedBefore>().FirstOrDefault();
+            if (timeToBeReceived != null && timeToBeReceived.MaxTime != TimeSpan.Zero)
+            {
+                metadata.TimeToBeReceived = DateTime.UtcNow + timeToBeReceived.MaxTime;
+            }
             return ToEventData(operation, metadata);
         }
 
@@ -78,6 +84,7 @@ namespace NServiceBus.Transports.EventStore
             else
             {
                 data = new byte[0];
+                metadata.Empty = true;
             }
             return new EventData(Guid.NewGuid(), type, true, data, metadata.ToJsonBytes());
         }
