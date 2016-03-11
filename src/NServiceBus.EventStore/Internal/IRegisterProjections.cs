@@ -1,7 +1,10 @@
-﻿namespace NServiceBus.Internal
+﻿using System.Threading.Tasks;
+using NServiceBus.Internal.Projections;
+
+namespace NServiceBus.Internal
 {
     public interface IRegisterProjections
     {
-        void RegisterProjectionsFor(string account);
+        Task RegisterProjectionsFor(IProjectionsManager projectionsManager);
     }
 }

@@ -12,23 +12,34 @@ namespace NServiceBus.Transports.EventStore
 {
     class Dispatcher : IDispatchMessages
     {
-        IManageEventStoreConnections connectionManager;
-        string outputQueue;
-
-        public Dispatcher(IManageEventStoreConnections connectionManager, string endpointName)
+        
+        public Dispatcher(IConnectionConfiguration connectionConfig, string endpointName)
         {
-            this.connectionManager = connectionManager;
+            this.connectionConfig = connectionConfig;
             this.outputQueue = "outputQueue-" + endpointName;
         }
 
-        public Task Dispatch(TransportOperations outgoingMessages, ContextBag context)
+        public async Task Dispatch(TransportOperations outgoingMessages, ContextBag context)
         {
             var unicastOps = outgoingMessages.UnicastTransportOperations.Select(ToEventData);
             var multicastOps = outgoingMessages.MulticastTransportOperations.Select(ToEventData);
 
             var allOps = unicastOps.Concat(multicastOps).ToArray();
 
-            return connectionManager.GetConnection().AppendToStreamAsync(outputQueue, ExpectedVersion.Any, allOps);
+            TransportTransaction transportTransaction;
+            if (context.TryGet(out transportTransaction))
+            {
+                var connection = transportTransaction.Get<IEventStoreConnection>();
+                await connection.AppendToStreamAsync(outputQueue, ExpectedVersion.Any, allOps);
+            }
+            else
+            {
+                using (var connection = connectionConfig.CreateConnection())
+                {
+                    await connection.ConnectAsync();
+                    await connection.AppendToStreamAsync(outputQueue, ExpectedVersion.Any, allOps);
+                }
+            }
         }
 
         static EventData ToEventData(UnicastTransportOperation operation)
@@ -70,5 +81,8 @@ namespace NServiceBus.Transports.EventStore
             }
             return new EventData(Guid.NewGuid(), type, true, data, metadata.ToJsonBytes());
         }
+
+        IConnectionConfiguration connectionConfig;
+        string outputQueue;
     }
 }

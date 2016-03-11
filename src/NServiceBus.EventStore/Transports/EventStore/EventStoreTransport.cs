@@ -25,31 +25,28 @@ namespace NServiceBus
     class EventStoreTransportInfrastructure : TransportInfrastructure
     {
         SettingsHolder settings;
-        DefaultConnectionManager connectionManager;
+        ConnectionConfiguration connectionConfiguration;
 
         public EventStoreTransportInfrastructure(SettingsHolder settings, string connectionString)
         {
-            var connectionConfiguration = new ConnectionStringParser().Parse(connectionString);
-
-            connectionManager = new DefaultConnectionManager(connectionConfiguration);
-            
+            connectionConfiguration = new ConnectionStringParser().Parse(connectionString);
             this.settings = settings;
         }
 
         public override TransportReceiveInfrastructure ConfigureReceiveInfrastructure()
         {
             return new TransportReceiveInfrastructure(
-                () => new MessagePump(connectionManager),
+                () => new MessagePump(connectionConfiguration),
                 () => new EventStoreQueueCreator(new List<IRegisterProjections>()
                 {
                     new ReceiverSinkProjectionCreator(),
                     new RouterProjectionCreator(),
                     new SubscriptionsProjectionCreator()
-                }, connectionManager), PreStartupCheck 
+                }, connectionConfiguration), PreStartupCheck 
                 );
         }
 
-        private Task<StartupCheckResult> PreStartupCheck()
+        private static Task<StartupCheckResult> PreStartupCheck()
         {
             return Task.FromResult(StartupCheckResult.Success);
         }
@@ -57,12 +54,12 @@ namespace NServiceBus
         public override TransportSendInfrastructure ConfigureSendInfrastructure()
         {
             return new TransportSendInfrastructure(
-                () => new Dispatcher(connectionManager, settings.EndpointName().ToString()), PreStartupCheck);
+                () => new Dispatcher(connectionConfiguration, settings.EndpointName().ToString()), PreStartupCheck);
         }
 
         public override TransportSubscriptionInfrastructure ConfigureSubscriptionInfrastructure()
         {
-            return new TransportSubscriptionInfrastructure(() => new SubscriptionManager(connectionManager, settings.EndpointName().ToString()));
+            return new TransportSubscriptionInfrastructure(() => new SubscriptionManager(connectionConfiguration, settings.EndpointName().ToString()));
         }
 
         public override EndpointInstance BindToLocalEndpoint(EndpointInstance instance)

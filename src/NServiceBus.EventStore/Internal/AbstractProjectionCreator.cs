@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using NServiceBus.Internal.Projections;
 
 namespace NServiceBus.Internal
@@ -10,25 +11,22 @@ namespace NServiceBus.Internal
         protected abstract string GetQuery();
         protected abstract string GetName();
 
-        public IManageEventStoreConnections ConnectionManager { get; set; }
-
-        public void RegisterProjectionsFor(string account)
+        public async Task RegisterProjectionsFor(IProjectionsManager projectionManager)
         {
-            var projectionManager = ConnectionManager.GetProjectionManager();
-            var byCategory = projectionManager.GetStatus(ByCategoryProjection);
+            var byCategory = await projectionManager.GetStatus(ByCategoryProjection);
             if (byCategory.StatusEnum == ManagedProjectionState.Stopped)
             {
-                projectionManager.Enable(ByCategoryProjection);
+                await projectionManager.Enable(ByCategoryProjection);
             }
             var projectionName = GetName();
 
-            var projectionList = projectionManager.List();
+            var projectionList = await projectionManager.List();
             if (projectionList.All(x => x.Name != projectionName))
             {
                 var query = GetQuery();
                 try
                 {
-                    projectionManager.CreateContinuous(projectionName, query);
+                    await projectionManager.CreateContinuous(projectionName, query);
                 }
                 catch (Exception)
                 {
@@ -40,10 +38,10 @@ namespace NServiceBus.Internal
             }
             else
             {
-                var status = projectionManager.GetStatus(projectionName);
+                var status = await projectionManager.GetStatus(projectionName);
                 if (status.StatusEnum == ManagedProjectionState.Stopped)
                 {
-                    projectionManager.Enable(projectionName);
+                    await projectionManager.Enable(projectionName);
                 }
             }
         }

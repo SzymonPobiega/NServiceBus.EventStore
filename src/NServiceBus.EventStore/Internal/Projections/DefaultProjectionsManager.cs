@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.Projections;
 using EventStore.ClientAPI.SystemData;
 
 namespace NServiceBus.Internal.Projections
@@ -17,57 +19,57 @@ namespace NServiceBus.Internal.Projections
             this.userCredentials = userCredentials;
         }
 
-        public bool Exists(string projectionName)
+        public async Task<bool> Exists(string projectionName)
         {
-            return List().Any(x => x.Name == projectionName);
+            return (await List().ConfigureAwait(false)).Any(x => x.Name == projectionName);
         }
 
-        public string GetQuery(string projectionName)
+        public Task<string> GetQuery(string projectionName)
         {            
-            return projectionsManager.GetQueryAsync(projectionName, userCredentials).Result;
+            return projectionsManager.GetQueryAsync(projectionName, userCredentials);
         }
 
-        public void CreateContinuous(string projectionName, string query)
+        public Task CreateContinuous(string projectionName, string query)
         {
-            projectionsManager.CreateContinuousAsync(projectionName, query, userCredentials).Wait();
+            return projectionsManager.CreateContinuousAsync(projectionName, query, userCredentials);
         }
 
-        public void UpdateQuery(string projectionName, string newQuery)
+        public Task UpdateQuery(string projectionName, string newQuery)
         {
-            projectionsManager.UpdateQueryAsync(projectionName, newQuery, userCredentials).Wait();
+            return projectionsManager.UpdateQueryAsync(projectionName, newQuery, userCredentials);
         }
 
-        public void Delete(string projectionName)
+        public Task Delete(string projectionName)
         {
-            projectionsManager.DeleteAsync(projectionName, userCredentials).Wait();
+            return projectionsManager.DeleteAsync(projectionName, userCredentials);
         }
 
-        public ProjectionInfo GetStatus(string projectionName)
+        public async Task<ProjectionInfo> GetStatus(string projectionName)
         {
-            var rawStatus = projectionsManager.GetStatusAsync(projectionName, userCredentials).Result;
+            var rawStatus = await projectionsManager.GetStatusAsync(projectionName, userCredentials);
             return rawStatus.ParseJson<ProjectionInfo>();
         }
 
-        public IList<ProjectionInfo> List()
+        public async Task<IList<ProjectionInfo>> List()
         {
-            var rawList = projectionsManager.ListAllAsync(userCredentials).Result;
-            return rawList.ParseJson<ProjectionList>().Projections;
+            var rawList = await projectionsManager.ListAllAsync(userCredentials).ConfigureAwait(false);
+            return rawList.Select(x => new ProjectionInfo {Name = x.Name, Status = x.Status}).ToList();
         }
 
-        public void Stop(string projectionName)
+        public Task Stop(string projectionName)
         {
-            projectionsManager.DisableAsync(projectionName, userCredentials).Wait();
+            return projectionsManager.DisableAsync(projectionName, userCredentials);
         }
 
-        public void Enable(string projectionName)
+        public async Task Enable(string projectionName)
         {
             try
             {
-                projectionsManager.EnableAsync(projectionName, userCredentials).Wait();
+                await projectionsManager.EnableAsync(projectionName, userCredentials);
             }
             catch (Exception)
             {
-                var projections = List();
+                var projections = await List();
                 if (projections.Any(x => x.Name == projectionName 
                     && (x.StatusEnum == ManagedProjectionState.Running || x.StatusEnum == ManagedProjectionState.Starting)))
                 {

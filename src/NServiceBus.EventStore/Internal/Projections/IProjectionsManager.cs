@@ -1,17 +1,19 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
+using EventStore.ClientAPI.Projections;
 
 namespace NServiceBus.Internal.Projections
 {
     public interface IProjectionsManager
     {
-        bool Exists(string projectionName);
-        string GetQuery(string projectionName);
-        void CreateContinuous(string projectionName, string query);
-        void UpdateQuery(string projectionName, string newQuery);
-        void Delete(string projectionName);
-        ProjectionInfo GetStatus(string projectionName);
-        IList<ProjectionInfo> List();
-        void Stop(string projectionName);
-        void Enable(string projectionName);
+        Task<bool> Exists(string projectionName);
+        Task<string> GetQuery(string projectionName);
+        Task CreateContinuous(string projectionName, string query);
+        Task UpdateQuery(string projectionName, string newQuery);
+        Task Delete(string projectionName);
+        Task<ProjectionInfo> GetStatus(string projectionName);
+        Task<IList<ProjectionInfo>> List();
+        Task Stop(string projectionName);
+        Task Enable(string projectionName);
     }
 }

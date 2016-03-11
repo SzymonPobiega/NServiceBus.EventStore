@@ -8,30 +8,32 @@ namespace NServiceBus.Transports.EventStore
 {
     class SubscriptionManager : IManageSubscriptions
     {
-        IManageEventStoreConnections connectionManager;
+        IConnectionConfiguration connectionConfig;
         string endpointName;
 
-        public SubscriptionManager(IManageEventStoreConnections connectionManager, string endpointName)
+        public SubscriptionManager(IConnectionConfiguration connectionConfig, string endpointName)
         {
-            this.connectionManager = connectionManager;
+            this.connectionConfig = connectionConfig;
             this.endpointName = endpointName;
         }
 
-        private Task ChangeSubscription(string action, Type eventType)
+        private async Task ChangeSubscription(string action, Type eventType)
         {
             var data = new SubscriptionEvent
             {
                 SubscriberEndpoint = endpointName,
                 EventType = eventType.AssemblyQualifiedName,
             };
-            return connectionManager.GetConnection()
-                .AppendToStreamAsync("events-subscriptions", ExpectedVersion.Any,
-                    new EventData(Guid.NewGuid(), action, true, data.ToJsonBytes(), new byte[0]));
+            using (var connection = connectionConfig.CreateConnection())
+            {
+                await connection.ConnectAsync().ConfigureAwait(false);
+                await connection.AppendToStreamAsync("events-subscriptions", ExpectedVersion.Any, new EventData(Guid.NewGuid(), action, true, data.ToJsonBytes(), new byte[0])).ConfigureAwait(false);
+            }
         }
 
-        public Task Subscribe(Type eventType, ContextBag context)
+        public async Task Subscribe(Type eventType, ContextBag context)
         {
-            return ChangeSubscription("$subscribe", eventType);
+            await ChangeSubscription("$subscribe", eventType).ConfigureAwait(false);
         }
 
         public Task Unsubscribe(Type eventType, ContextBag context)

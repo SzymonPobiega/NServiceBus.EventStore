@@ -18,7 +18,7 @@ namespace NServiceBus.Transports.EventStore
         if (e.eventType === '$subscribe') {
             subscribers = s[e.data.eventType] || (s[e.data.eventType] = []);
             subscriberEndpoint = e.data.subscriberEndpoint;
-            if (subscribers.indexOf(subscriberEndpoint === -1)) {
+            if (subscribers.indexOf(subscriberEndpoint) === -1) {
                 subscribers.push(subscriberEndpoint);
             }
             return s;

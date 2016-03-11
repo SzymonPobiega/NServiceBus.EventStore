@@ -11,50 +11,50 @@ namespace NServiceBus
     class EventStoreQueueCreator : ICreateQueues
     {
         private readonly IEnumerable<IRegisterProjections> queueCreators;
-        private readonly IManageEventStoreConnections connectionManager;
+        private readonly IConnectionConfiguration connectionConfig;
 
-        public EventStoreQueueCreator(IEnumerable<IRegisterProjections> queueCreators, IManageEventStoreConnections connectionManager)
+        public EventStoreQueueCreator(IEnumerable<IRegisterProjections> queueCreators, IConnectionConfiguration connectionConfig)
         {
             this.queueCreators = queueCreators;
-            this.connectionManager = connectionManager;
+            this.connectionConfig = connectionConfig;
         }
 
-        private void EnsureSubscriptionExists(string queue)
+        private async Task EnsureSubscriptionExists(string queue, IEventStoreConnection connection)
         {
             try
             {
-                var result = connectionManager.GetConnection()
-                    .CreatePersistentSubscriptionAsync(queue, queue,
-                        PersistentSubscriptionSettingsBuilder.Create(), null)
-                    .Result;
+                await connection.CreatePersistentSubscriptionAsync(queue, queue, PersistentSubscriptionSettings.Create(), null).ConfigureAwait(false);
             }
-            catch (AggregateException ex)
+            catch (Exception ex)
             {
-                var inner = ex.InnerException as InvalidOperationException;
-                if (inner == null ||
-                    inner.Message != string.Format("Subscription group {0} on stream {0} alreay exists", queue))
+                if (ex.Message != string.Format("Subscription group {0} on stream {0} already exists", queue))
                 {
                     throw;
                 }
             }
         }
 
-        private void RegisterProjections(string account)
+        private void RegisterProjections()
         {
+            var projectionsManager = connectionConfig.CreateProjectionsManager();
             foreach (var creator in queueCreators)
             {
-                creator.RegisterProjectionsFor(account);
+                creator.RegisterProjectionsFor(projectionsManager);
             }
         }
 
-        public Task CreateQueueIfNecessary(QueueBindings queueBindings, string identity)
+        public async Task CreateQueueIfNecessary(QueueBindings queueBindings, string identity)
         {
-            RegisterProjections(identity);
-            foreach (var queueBinding in queueBindings.ReceivingAddresses)
+            RegisterProjections();
+
+            using (var connection = connectionConfig.CreateConnection())
             {
-                EnsureSubscriptionExists(queueBinding);
+                await connection.ConnectAsync();
+                foreach (var queueBinding in queueBindings.ReceivingAddresses)
+                {
+                    await EnsureSubscriptionExists(queueBinding, connection).ConfigureAwait(false);
+                }
             }
-            return Task.FromResult(0);
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.ClientOperations;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
@@ -15,19 +16,22 @@ namespace NServiceBus.Transports.EventStore
 {
     public class MessagePump : IPushMessages
     {
-        private readonly IManageEventStoreConnections connectionManager;
 
-        public MessagePump(IManageEventStoreConnections connectionManager)
+        public MessagePump(IConnectionConfiguration connectionConfiguration)
         {
-            this.connectionManager = connectionManager;
+            this.connectionConfiguration = connectionConfiguration;
         }
 
-        private void SubscriptionDropped(EventStorePersistentSubscription droppedSubscription, SubscriptionDropReason dropReason, Exception e)
+        private void SubscriptionDropped(EventStorePersistentSubscriptionBase droppedSubscription, SubscriptionDropReason dropReason, Exception e)
         {
+            if (dropReason == SubscriptionDropReason.UserInitiated)
+            {
+                return;
+            }
             Logger.Error("Subscription dropped", e);
             try
             {
-                subscription = connectionManager.GetConnection().ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped);
+                subscription = connection.ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped);
             }
             catch (Exception ex)
             {
@@ -35,12 +39,12 @@ namespace NServiceBus.Transports.EventStore
             }
         }
 
-        private void OnEvent(EventStorePersistentSubscription subscription, ResolvedEvent evnt)
+        private void OnEvent(EventStorePersistentSubscriptionBase s, ResolvedEvent evnt)
         {
             concurrencyLimiter.Wait(cancellationToken);
-
+            
             var tokenSource = new CancellationTokenSource();
-            var pushContext = ToPushContext(evnt);
+            var pushContext = ToPushContext(evnt, tokenSource);
             if (pushContext == null) //system message
             {
                 return;
@@ -51,7 +55,20 @@ namespace NServiceBus.Transports.EventStore
                 try
                 {
                     pipeline(pushContext).GetAwaiter().GetResult();
+                    if (tokenSource.IsCancellationRequested)
+                    {
+                        s.Fail(evnt, PersistentSubscriptionNakEventAction.Retry, "User requested");
+                    }
+                    else
+                    {
+                        s.Acknowledge(evnt);
+                    }
                     receiveCircuitBreaker.Success();
+                }
+                catch (Exception ex)
+                {
+                    s.Fail(evnt, PersistentSubscriptionNakEventAction.Retry, "Unhandled exception");
+                    receiveCircuitBreaker.Failure(ex).GetAwaiter().GetResult();
                 }
                 finally
                 {
@@ -76,7 +93,7 @@ namespace NServiceBus.Transports.EventStore
             }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
-        static PushContext ToPushContext(ResolvedEvent evnt)
+        PushContext ToPushContext(ResolvedEvent evnt, CancellationTokenSource tokenSource)
         {
             if (evnt.Event.EventType.StartsWith("$"))
             {
@@ -84,7 +101,9 @@ namespace NServiceBus.Transports.EventStore
             }
             var metadata = evnt.Event.Metadata.ParseJson<EventStoreMessageMetadata>();
             var headers = metadata.Headers.ToDictionary(x => x.Key.ToPascalCase(), x => x.Value);
-            var context = new PushContext(metadata.MessageId, headers, new MemoryStream(evnt.Event.Data), new TransportTransaction(), null, new ContextBag());
+            var transportTransaction = new TransportTransaction();
+            transportTransaction.Set(connection);
+            var context = new PushContext(metadata.MessageId, headers, new MemoryStream(evnt.Event.Data), transportTransaction, tokenSource, new ContextBag());
             return context;
         }
 
@@ -93,13 +112,14 @@ namespace NServiceBus.Transports.EventStore
             pipeline = pipe;
             inputQueue = settings.InputQueue;
             receiveCircuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventStoreReceive", TimeSpan.FromSeconds(30), ex => criticalError.Raise("Failed to receive from " + settings.InputQueue, ex));
+            connection = connectionConfiguration.CreateConnection();
             this.criticalError = criticalError;
             if (settings.PurgeOnStartup)
             {
                 //inputQueue.Purge();
             }
 
-            return Task.FromResult(0);
+            return connection.ConnectAsync();
         }
 
         public void Start(PushRuntimeSettings limitations)
@@ -110,7 +130,7 @@ namespace NServiceBus.Transports.EventStore
 
             cancellationToken = cancellationTokenSource.Token;
 
-            subscription = connectionManager.GetConnection().ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped);
+            subscription = connection.ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped, autoAck:false);
         }
 
         public async Task Stop()
@@ -126,11 +146,13 @@ namespace NServiceBus.Transports.EventStore
             {
                 Logger.Error("The message pump failed to stop with in the time allowed(30s)");
             }
-
+            connection.Close();
             concurrencyLimiter.Dispose();
             runningReceiveTasks.Clear();
         }
 
+        IConnectionConfiguration connectionConfiguration;
+        IEventStoreConnection connection;
         CancellationToken cancellationToken;
         CancellationTokenSource cancellationTokenSource;
         SemaphoreSlim concurrencyLimiter;
@@ -139,7 +161,7 @@ namespace NServiceBus.Transports.EventStore
         ConcurrentDictionary<Task, Task> runningReceiveTasks;
 
         string inputQueue;
-        EventStorePersistentSubscription subscription;
+        EventStorePersistentSubscriptionBase subscription;
         Func<PushContext, Task> pipeline;
 
         static ILog Logger = LogManager.GetLogger<MessagePump>();

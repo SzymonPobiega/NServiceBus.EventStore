@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using NServiceBus.Internal.Projections;
 
@@ -7,22 +8,28 @@ namespace NServiceBus.Internal
     public class DefaultConnectionManager : IManageEventStoreConnections, IDisposable
     {
         private readonly IConnectionConfiguration connectionConfiguration;
-        private readonly Lazy<IEventStoreConnection> connection;
+        private readonly IEventStoreConnection connection;
+        private bool connected;
 
         public DefaultConnectionManager(IConnectionConfiguration connectionConfiguration)
         {
             this.connectionConfiguration = connectionConfiguration;
-            connection = new Lazy<IEventStoreConnection>(() =>
-                {
-                    var conn = this.connectionConfiguration.CreateConnection();
-                    conn.ConnectAsync().Wait();
-                    return conn;
-                }, true);
+            connection = this.connectionConfiguration.CreateConnection();
         }
 
+        public async Task Connect()
+        {
+            if (connected)
+            {
+                return;
+            }
+            await connection.ConnectAsync();
+            connected = true;
+        }
+        
         public IEventStoreConnection GetConnection()
         {
-            return connection.Value;
+            return connection;
         }
 
         public IProjectionsManager GetProjectionManager()
@@ -37,10 +44,7 @@ namespace NServiceBus.Internal
 
         public void DisposeManaged()
         {
-            if (connection.IsValueCreated)
-            {
-                connection.Value.Dispose();
-            }
+            connection.Dispose();
         }
     }
 }

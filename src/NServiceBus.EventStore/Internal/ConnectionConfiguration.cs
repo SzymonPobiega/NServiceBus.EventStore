@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.Projections;
 using NServiceBus.Internal.Projections;
 
 namespace NServiceBus.Internal
