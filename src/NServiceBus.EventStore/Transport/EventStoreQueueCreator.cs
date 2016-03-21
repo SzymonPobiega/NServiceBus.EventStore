@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using NServiceBus.Internal;
 using NServiceBus.Transports;
-using NServiceBus.Transports.EventStore;
 
 namespace NServiceBus
 {
     class EventStoreQueueCreator : ICreateQueues
     {
-        private readonly IEnumerable<IRegisterProjections> queueCreators;
         private readonly IConnectionConfiguration connectionConfig;
 
-        public EventStoreQueueCreator(IEnumerable<IRegisterProjections> queueCreators, IConnectionConfiguration connectionConfig)
+        public EventStoreQueueCreator(IConnectionConfiguration connectionConfig)
         {
-            this.queueCreators = queueCreators;
             this.connectionConfig = connectionConfig;
         }
 
@@ -34,19 +30,8 @@ namespace NServiceBus
             }
         }
 
-        private void RegisterProjections()
-        {
-            var projectionsManager = connectionConfig.CreateProjectionsManager();
-            foreach (var creator in queueCreators)
-            {
-                creator.RegisterProjectionsFor(projectionsManager);
-            }
-        }
-
         public async Task CreateQueueIfNecessary(QueueBindings queueBindings, string identity)
         {
-            RegisterProjections();
-
             using (var connection = connectionConfig.CreateConnection())
             {
                 await connection.ConnectAsync();

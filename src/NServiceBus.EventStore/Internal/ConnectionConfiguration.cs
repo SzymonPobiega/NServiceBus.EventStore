@@ -2,7 +2,6 @@
 using System.Net;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Projections;
-using NServiceBus.Internal.Projections;
 
 namespace NServiceBus.Internal
 {
@@ -51,11 +50,6 @@ namespace NServiceBus.Internal
                 return EventStoreConnection.Create(connectionSettings, clusterSettings, name);
             }
             return EventStoreConnection.Create(connectionSettings, singleNodeAddress, name);
-        }
-
-        public IProjectionsManager CreateProjectionsManager()
-        {
-            return new DefaultProjectionsManager(new ProjectionsManager(new NoopLogger(), httpEndpoint, TimeSpan.FromSeconds(90)), connectionSettings.DefaultUserCredentials);
         }
     }
 }

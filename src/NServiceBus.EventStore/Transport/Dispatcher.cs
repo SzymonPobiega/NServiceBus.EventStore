@@ -1,87 +1,86 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using System.Transactions;
 using EventStore.ClientAPI;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Performance.TimeToBeReceived;
 using NServiceBus.Transports;
-using NServiceBus.Transports.EventStore;
-using NServiceBus.Unicast;
 
 namespace NServiceBus
 {
     class Dispatcher : IDispatchMessages
     {
-        
-        public Dispatcher(IConnectionConfiguration connectionConfig, string endpointName)
+        readonly SubscriptionManager subscriptionManager;
+
+        readonly IConnectionConfiguration connectionConfig;
+
+        public Dispatcher(IConnectionConfiguration connectionConfig, SubscriptionManager subscriptionManager)
         {
             this.connectionConfig = connectionConfig;
-            this.outputQueue = "outputQueue-" + endpointName;
+            this.subscriptionManager = subscriptionManager;
         }
 
         public async Task Dispatch(TransportOperations outgoingMessages, ContextBag context)
         {
-            var unicastOps = outgoingMessages.UnicastTransportOperations.Select(ToEventData);
-            var multicastOps = outgoingMessages.MulticastTransportOperations.Select(ToEventData);
-
-            var allOps = unicastOps.Concat(multicastOps).ToArray();
-
             TransportTransaction transportTransaction;
             if (context.TryGet(out transportTransaction))
             {
                 var connection = transportTransaction.Get<IEventStoreConnection>();
-                await connection.AppendToStreamAsync(outputQueue, ExpectedVersion.Any, allOps);
+                await Dispatch(outgoingMessages, connection).ConfigureAwait(false);
             }
             else
             {
                 using (var connection = connectionConfig.CreateConnection())
                 {
                     await connection.ConnectAsync();
-                    await connection.AppendToStreamAsync(outputQueue, ExpectedVersion.Any, allOps);
+                    await Dispatch(outgoingMessages, connection).ConfigureAwait(false);
                 }
             }
         }
 
-        static EventData ToEventData(UnicastTransportOperation operation)
+        async Task Dispatch(TransportOperations outgoingMessages, IEventStoreConnection connection)
         {
-            var metadata = new EventStoreMessageMetadata()
+            foreach (var op in outgoingMessages.UnicastTransportOperations)
             {
-                DestinationQueue = operation.Destination,
-            };
+                await
+                    connection.AppendToStreamAsync(op.Destination, ExpectedVersion.Any, ToEventData(op))
+                        .ConfigureAwait(false);
+            }
+            foreach (var op in outgoingMessages.MulticastTransportOperations)
+            {
+                var destinations = await subscriptionManager.GetDestinationQueues(op.MessageType).ConfigureAwait(false);
+                foreach (var destination in destinations)
+                {
+                    await
+                        connection.AppendToStreamAsync(destination, ExpectedVersion.Any, ToEventData(op))
+                            .ConfigureAwait(false);
+                }
+            }
+        }
+
+        static EventData ToEventData(IOutgoingTransportOperation operation)
+        {
+            var metadata = new MessageMetadata();
             var timeToBeReceived = operation.DeliveryConstraints.OfType<DiscardIfNotReceivedBefore>().FirstOrDefault();
             if (timeToBeReceived != null && timeToBeReceived.MaxTime != TimeSpan.Zero)
             {
                 metadata.TimeToBeReceived = DateTime.UtcNow + timeToBeReceived.MaxTime;
             }
-            return ToEventData(operation, metadata);
-        }
-
-        static EventData ToEventData(MulticastTransportOperation operation)
-        {
-            var metadata = new EventStoreMessageMetadata();
-            return ToEventData(operation, metadata);
-        }
-
-        static EventData ToEventData(IOutgoingTransportOperation operation, EventStoreMessageMetadata metadata)
-        {
             metadata.MessageId = operation.Message.MessageId;
             metadata.Headers = operation.Message.Headers;
-            var type = operation.Message.Headers.ContainsKey(Headers.ControlMessageHeader) 
-                ? "ControlMessage" 
+            var type = operation.Message.Headers.ContainsKey(Headers.ControlMessageHeader)
+                ? "ControlMessage"
                 : operation.Message.Headers[Headers.EnclosedMessageTypes];
 
             byte[] data;
             string contentType;
             if (operation.Message.Headers.TryGetValue(Headers.ContentType, out contentType))
             {
-                if (contentType != ContentTypes.Json)
-                {
-                    throw new InvalidOperationException("Invalid content type: "+contentType);
-                }
-                data = operation.Message.Body;
+                data = contentType != ContentTypes.Json 
+                    ? Encoding.UTF8.GetBytes(Convert.ToBase64String(operation.Message.Body)) 
+                    : operation.Message.Body;
             }
             else
             {
@@ -90,8 +89,5 @@ namespace NServiceBus
             }
             return new EventData(Guid.NewGuid(), type, true, data, metadata.ToJsonBytes());
         }
-
-        IConnectionConfiguration connectionConfig;
-        string outputQueue;
     }
 }

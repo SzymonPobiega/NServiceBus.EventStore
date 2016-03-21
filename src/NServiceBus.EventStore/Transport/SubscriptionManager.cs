@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using NServiceBus.Exchange;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Transports;
@@ -9,37 +13,111 @@ namespace NServiceBus
 {
     class SubscriptionManager : IManageSubscriptions
     {
-        IConnectionConfiguration connectionConfig;
-        string endpointName;
+        bool started;
+        ExchangeManager exchangeManager;
+        string localQueue;
+        IEventStoreConnection managerConnection;
+        readonly ConcurrentDictionary<Type, string> typeTopologyConfiguredSet = new ConcurrentDictionary<Type, string>();
 
-        public SubscriptionManager(IConnectionConfiguration connectionConfig, string endpointName)
+        public SubscriptionManager(IConnectionConfiguration connectionConfig, string localQueue, bool enableCaching)
         {
-            this.connectionConfig = connectionConfig;
-            this.endpointName = endpointName;
+            managerConnection = connectionConfig.CreateConnection();
+            exchangeManager = new ExchangeManager(managerConnection, enableCaching);
+            this.localQueue = localQueue;
+            Start().GetAwaiter().GetResult();
         }
 
-        private async Task ChangeSubscription(string action, Type eventType)
+        async Task Start()
         {
-            var data = new SubscriptionEvent
+            if (started)
             {
-                SubscriberEndpoint = endpointName,
-                EventType = eventType.AssemblyQualifiedName,
-            };
-            using (var connection = connectionConfig.CreateConnection())
-            {
-                await connection.ConnectAsync().ConfigureAwait(false);
-                await connection.AppendToStreamAsync("events-subscriptions", ExpectedVersion.Any, new EventData(Guid.NewGuid(), action, true, data.ToJsonBytes(), new byte[0])).ConfigureAwait(false);
+                return;
             }
+            await managerConnection.ConnectAsync().ConfigureAwait(false);
+            await exchangeManager.Start().ConfigureAwait(false);
+            started = true;
+        }
+
+        public void Stop()
+        {
+            exchangeManager.Stop();
+            managerConnection.Dispose();
+            started = false;
+        }
+
+        public async Task<IEnumerable<string>> GetDestinationQueues(Type messageType)
+        {
+            if (!IsTypeTopologyKnownConfigured(messageType))
+            {
+                await exchangeManager.UpdateExchanges(c =>
+                {
+                    SetupTypeSubscriptions(messageType, c);
+                }).ConfigureAwait(false);
+            }
+            return await exchangeManager.GetDestinationQueues(ExchangeName(messageType)).ConfigureAwait(false);
         }
 
         public async Task Subscribe(Type eventType, ContextBag context)
         {
-            await ChangeSubscription("$subscribe", eventType).ConfigureAwait(false);
+            if (eventType == typeof(IEvent))
+            {
+                // Make handlers for IEvent handle all events whether they extend IEvent or not
+                eventType = typeof(object);
+            }
+            await exchangeManager.UpdateExchanges(c =>
+            {
+                SetupTypeSubscriptions(eventType, c);
+                c.BindQueue(ExchangeName(eventType), localQueue);
+
+            }).ConfigureAwait(false);
+            MarkTypeConfigured(eventType);
         }
 
         public Task Unsubscribe(Type eventType, ContextBag context)
         {
-            return ChangeSubscription("$unsubscribe", eventType);
+            return exchangeManager.UnbindQueue(ExchangeName(eventType), localQueue);
+        }
+
+        static string ExchangeName(Type type)
+        {
+            return type.Namespace + "-" + type.Name;
+        }
+
+        void SetupTypeSubscriptions(Type type, ExchangeDataCollection exchangeDataCollection)
+        {
+            if (type == typeof(object) || IsTypeTopologyKnownConfigured(type))
+            {
+                return;
+            }
+
+            var typeToProcess = type;
+            exchangeDataCollection.DeclareExchange(ExchangeName(typeToProcess));
+
+            exchangeDataCollection.DeclareExchange(ExchangeName(typeToProcess));
+            var baseType = typeToProcess.BaseType;
+            while (baseType != null)
+            {
+                exchangeDataCollection.DeclareExchange(ExchangeName(baseType));
+                exchangeDataCollection.BindExchange(ExchangeName(typeToProcess), ExchangeName(baseType));
+                typeToProcess = baseType;
+                baseType = typeToProcess.BaseType;
+            }
+
+            foreach (var exchangeName in type.GetInterfaces().Select(ExchangeName))
+            {
+                exchangeDataCollection.DeclareExchange(exchangeName);
+                exchangeDataCollection.BindExchange(ExchangeName(type), exchangeName);
+            }
+        }
+
+        void MarkTypeConfigured(Type eventType)
+        {
+            typeTopologyConfiguredSet[eventType] = null;
+        }
+
+        bool IsTypeTopologyKnownConfigured(Type eventType)
+        {
+            return typeTopologyConfiguredSet.ContainsKey(eventType);
         }
     }
 }

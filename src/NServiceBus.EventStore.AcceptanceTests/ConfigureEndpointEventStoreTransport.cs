@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Messaging;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using EventStore.ClientAPI;
 using NServiceBus;
 using NServiceBus.AcceptanceTesting.Support;
 using NServiceBus.AcceptanceTests.ScenarioDescriptors;
@@ -27,14 +29,23 @@ public class ConfigureEndpointEventStoreTransport : IConfigureEndpointTestExecut
     {
         queueBindings = configuration.GetSettings().Get<QueueBindings>();
         var connectionString = settings.Get<string>("Transport.ConnectionString");
-        configuration.UseTransport<EventStoreTransport>().ConnectionString(connectionString);
+        configuration.UseTransport<EventStoreTransport>().ConnectionString(connectionString).DisableExchangeCaching();
         configuration.UseSerialization<JsonSerializer>().Encoding(new UTF8Encoding(false));
         return Task.FromResult(0);
     }
 
-    public Task Cleanup()
+    public async Task Cleanup()
     {
-        return Task.FromResult(0);
+        var connection = EventStoreConnection.Create(new IPEndPoint(IPAddress.Loopback, 1113));
+
+        await connection.ConnectAsync().ConfigureAwait(false);
+
+        foreach (var receivingAddress in queueBindings.ReceivingAddresses)
+        {
+            await connection.DeleteStreamAsync(receivingAddress, ExpectedVersion.Any, false).ConfigureAwait(false);
+        }
+
+        await connection.DeleteStreamAsync("nsb-exchanges", ExpectedVersion.Any, false).ConfigureAwait(false);
     }
 
     QueueBindings queueBindings;

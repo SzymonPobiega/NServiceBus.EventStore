@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
@@ -17,10 +18,10 @@ namespace NServiceBus
 {
     class MessagePump : IPushMessages
     {
-
-        public MessagePump(IConnectionConfiguration connectionConfiguration)
+        public MessagePump(IConnectionConfiguration connectionConfiguration, SubscriptionManager subscriptionManager)
         {
             this.connectionConfiguration = connectionConfiguration;
+            this.subscriptionManager = subscriptionManager;
         }
 
         private void SubscriptionDropped(EventStorePersistentSubscriptionBase droppedSubscription, SubscriptionDropReason dropReason, Exception e)
@@ -100,7 +101,7 @@ namespace NServiceBus
             {
                 return null;
             }
-            var metadata = evnt.Event.Metadata.ParseJson<EventStoreMessageMetadata>();
+            var metadata = evnt.Event.Metadata.ParseJson<MessageMetadata>();
             if (metadata.TimeToBeReceived.HasValue && metadata.TimeToBeReceived.Value < DateTime.UtcNow)
             {
                 return null;
@@ -111,11 +112,18 @@ namespace NServiceBus
             var data = metadata.Empty //because EventStore inserts {}
                 ? new byte[0] 
                 : evnt.Event.Data;
+            string contentType;
+            if (headers.TryGetValue(Headers.ContentType, out contentType))
+            {
+                data = contentType != ContentTypes.Json
+                    ? Convert.FromBase64String(Encoding.UTF8.GetString(data))
+                    : data;
+            }
             var context = new PushContext(metadata.MessageId, headers, new MemoryStream(data), transportTransaction, tokenSource, new ContextBag());
             return context;
         }
 
-        public Task Init(Func<PushContext, Task> pipe, CriticalError criticalError, PushSettings settings)
+        public async Task Init(Func<PushContext, Task> pipe, CriticalError criticalError, PushSettings settings)
         {
             pipeline = pipe;
             inputQueue = settings.InputQueue;
@@ -126,8 +134,8 @@ namespace NServiceBus
             {
                 //inputQueue.Purge();
             }
-
-            return connection.ConnectAsync();
+            //await subscriptionManager.Start();
+            await connection.ConnectAsync();
         }
 
         public void Start(PushRuntimeSettings limitations)
@@ -143,6 +151,7 @@ namespace NServiceBus
 
         public async Task Stop()
         {
+            subscriptionManager.Stop();
             subscription.Stop(TimeSpan.FromSeconds(60));
             cancellationTokenSource.Cancel();
 
@@ -160,6 +169,7 @@ namespace NServiceBus
         }
 
         IConnectionConfiguration connectionConfiguration;
+        readonly SubscriptionManager subscriptionManager;
         IEventStoreConnection connection;
         CancellationToken cancellationToken;
         CancellationTokenSource cancellationTokenSource;

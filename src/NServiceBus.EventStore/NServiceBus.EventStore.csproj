@@ -73,34 +73,30 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Exchange\Data\ExchangeDataCollection.cs" />
+    <Compile Include="Exchange\Exchange.cs" />
+    <Compile Include="Exchange\ExchangeCollection.cs" />
+    <Compile Include="Exchange\ExchangeManager.cs" />
+    <Compile Include="Exchange\Data\ExchangeRepository.cs" />
+    <Compile Include="Exchange\Data\ExchangeData.cs" />
     <Compile Include="Transport\EventStoreQueueCreator.cs" />
     <Compile Include="Internal\ConnectionConfiguration.cs" />
     <Compile Include="Internal\ConnectionConfigurationBuilder.cs" />
     <Compile Include="Internal\ConnectionStringParser.cs" />
+    <Compile Include="Transport\EventStoreTransportConfigurationExtensions.cs" />
+    <Compile Include="Transport\EventStoreTransportInfrastructure.cs" />
     <Compile Include="Transport\RepeatedFailuresOverTimeCircuitBreaker.cs" />
     <Compile Include="Transport\EventStoreTransport.cs" />
     <Compile Include="Internal\IConnectionConfiguration.cs" />
     <Compile Include="Internal\IConnectionStringParser.cs" />
     <Compile Include="NoopLogger.cs" />
-    <Compile Include="Internal\IRegisterProjections.cs" />
-    <Compile Include="Transport\ReceiverSinkProjectionCreator.cs" />
-    <Compile Include="Internal\Projections\DefaultProjectionsManager.cs" />
-    <Compile Include="Internal\DefaultConnectionManager.cs" />
     <Compile Include="Transport\MessagePump.cs" />
-    <Compile Include="Transport\EventStoreMessageMetadata.cs" />
-    <Compile Include="Internal\Projections\ManagedProjectionState.cs" />
-    <Compile Include="Internal\Projections\ProjectionInfo.cs" />
-    <Compile Include="Internal\Projections\ProjectionList.cs" />
-    <Compile Include="Internal\AbstractProjectionCreator.cs" />
+    <Compile Include="Transport\MessageMetadata.cs" />
     <Compile Include="Internal\Json.cs" />
     <Compile Include="StringExtensions.cs" />
-    <Compile Include="Transport\RouterProjectionCreator.cs" />
     <Compile Include="Transport\SubscriptionEvent.cs" />
     <Compile Include="Transport\SubscriptionManager.cs" />
     <Compile Include="Transport\Dispatcher.cs" />
-    <Compile Include="Transport\SubscriptionsProjectionCreator.cs" />
-    <Compile Include="Internal\IManageEventStoreConnections.cs" />
-    <Compile Include="Internal\Projections\IProjectionsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

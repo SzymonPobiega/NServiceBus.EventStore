@@ -15,9 +15,9 @@
             var context = await Scenario.Define<Context>()
                     .WithEndpoint<Endpoint>(b => b.When(session => session.SendLocal(new MessageToBeMutated())))
                     .Done(c => c.MessageProcessed)
+                    .Repeat(r => r.For(ScenarioDescriptors.Serializers.Xml))
+                    .Should(c => Assert.True(c.CanAddHeaders))
                     .Run();
-
-            Assert.True(context.CanAddHeaders);
         }
 
         public class Context : ScenarioContext
