@@ -18,12 +18,12 @@ namespace NServiceBus.Exchange
             repository = new ExchangeRepository(connection);
         }
 
-        public async Task Start()
+        public async Task Start(CriticalError criticalError)
         {
             var data = await repository.LoadExchanges().ConfigureAwait(false);
             cachedExchangeCollection = new ExchangeCollection(data);
 
-            await repository.StartMonitoring(OnNewVersion).ConfigureAwait(false);
+            await repository.StartMonitoring(OnNewVersion, criticalError).ConfigureAwait(false);
         }
 
         void OnNewVersion(ExchangeDataCollection newData)

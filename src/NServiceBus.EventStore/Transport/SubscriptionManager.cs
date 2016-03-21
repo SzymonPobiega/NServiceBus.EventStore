@@ -22,19 +22,18 @@ namespace NServiceBus
         public SubscriptionManager(IConnectionConfiguration connectionConfig, string localQueue, bool enableCaching)
         {
             managerConnection = connectionConfig.CreateConnection();
+            managerConnection.ConnectAsync().GetAwaiter().GetResult();
             exchangeManager = new ExchangeManager(managerConnection, enableCaching);
             this.localQueue = localQueue;
-            Start().GetAwaiter().GetResult();
         }
 
-        async Task Start()
+        public async Task Start(CriticalError criticalError)
         {
             if (started)
             {
                 return;
             }
-            await managerConnection.ConnectAsync().ConfigureAwait(false);
-            await exchangeManager.Start().ConfigureAwait(false);
+            await exchangeManager.Start(criticalError).ConfigureAwait(false);
             started = true;
         }
 

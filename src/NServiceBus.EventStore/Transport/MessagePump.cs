@@ -24,24 +24,50 @@ namespace NServiceBus
             this.subscriptionManager = subscriptionManager;
         }
 
-        private void SubscriptionDropped(EventStorePersistentSubscriptionBase droppedSubscription, SubscriptionDropReason dropReason, Exception e)
+        public async Task Init(Func<PushContext, Task> pipe, CriticalError criticalError, PushSettings settings)
+        {
+            pipeline = pipe;
+            inputQueue = settings.InputQueue;
+            receiveCircuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventStoreReceive", TimeSpan.FromSeconds(30), ex => criticalError.Raise("Failed to receive from " + settings.InputQueue, ex));
+            connection = connectionConfiguration.CreateConnection();
+            this.criticalError = criticalError;
+            if (settings.PurgeOnStartup)
+            {
+                //inputQueue.Purge();
+            }
+            await subscriptionManager.Start(criticalError);
+            await connection.ConnectAsync();
+        }
+
+        public void Start(PushRuntimeSettings limitations)
+        {
+            runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
+            concurrencyLimiter = new SemaphoreSlim(limitations.MaxConcurrency);
+            cancellationTokenSource = new CancellationTokenSource();
+
+            cancellationToken = cancellationTokenSource.Token;
+
+            subscription = connection.ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped, autoAck: false);
+        }
+
+        void SubscriptionDropped(EventStorePersistentSubscriptionBase droppedSubscription, SubscriptionDropReason dropReason, Exception e)
         {
             if (dropReason == SubscriptionDropReason.UserInitiated)
             {
                 return;
             }
-            Logger.Error("Subscription dropped", e);
+            Logger.Error("Message pump subscription dropped.", e);
             try
             {
                 subscription = connection.ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped);
             }
             catch (Exception ex)
             {
-                criticalError.Raise("Can't reconnect to EventStore", ex);
+                criticalError.Raise("Can't reconnect to EventStore.", ex);
             }
         }
 
-        private void OnEvent(EventStorePersistentSubscriptionBase s, ResolvedEvent evnt)
+        void OnEvent(EventStorePersistentSubscriptionBase s, ResolvedEvent evnt)
         {
             concurrencyLimiter.Wait(cancellationToken);
             
@@ -123,35 +149,10 @@ namespace NServiceBus
             return context;
         }
 
-        public async Task Init(Func<PushContext, Task> pipe, CriticalError criticalError, PushSettings settings)
-        {
-            pipeline = pipe;
-            inputQueue = settings.InputQueue;
-            receiveCircuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventStoreReceive", TimeSpan.FromSeconds(30), ex => criticalError.Raise("Failed to receive from " + settings.InputQueue, ex));
-            connection = connectionConfiguration.CreateConnection();
-            this.criticalError = criticalError;
-            if (settings.PurgeOnStartup)
-            {
-                //inputQueue.Purge();
-            }
-            //await subscriptionManager.Start();
-            await connection.ConnectAsync();
-        }
-
-        public void Start(PushRuntimeSettings limitations)
-        {
-            runningReceiveTasks = new ConcurrentDictionary<Task, Task>();
-            concurrencyLimiter = new SemaphoreSlim(limitations.MaxConcurrency);
-            cancellationTokenSource = new CancellationTokenSource();
-
-            cancellationToken = cancellationTokenSource.Token;
-
-            subscription = connection.ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped, autoAck:false);
-        }
+        
 
         public async Task Stop()
         {
-            subscriptionManager.Stop();
             subscription.Stop(TimeSpan.FromSeconds(60));
             cancellationTokenSource.Cancel();
 
@@ -169,7 +170,7 @@ namespace NServiceBus
         }
 
         IConnectionConfiguration connectionConfiguration;
-        readonly SubscriptionManager subscriptionManager;
+        SubscriptionManager subscriptionManager;
         IEventStoreConnection connection;
         CancellationToken cancellationToken;
         CancellationTokenSource cancellationTokenSource;

@@ -10,7 +10,7 @@ using NServiceBus.Transports;
 
 namespace NServiceBus
 {
-    class EventStoreTransportInfrastructure : TransportInfrastructure
+    class EventStoreTransportInfrastructure : TransportInfrastructure, IDisposable
     {
         SettingsHolder settings;
         ConnectionConfiguration connectionConfiguration;
@@ -30,7 +30,7 @@ namespace NServiceBus
         public override TransportReceiveInfrastructure ConfigureReceiveInfrastructure()
         {
             return new TransportReceiveInfrastructure(
-                () =>new MessagePump(connectionConfiguration, subscriptionManager.Value),
+                () => new MessagePump(connectionConfiguration, subscriptionManager.Value),
                 () => new EventStoreQueueCreator(connectionConfiguration), PreStartupCheck 
                 );
         }
@@ -77,5 +77,13 @@ namespace NServiceBus
         public override TransportTransactionMode TransactionMode => TransportTransactionMode.ReceiveOnly;
 
         public override OutboundRoutingPolicy OutboundRoutingPolicy => new OutboundRoutingPolicy(OutboundRoutingType.Unicast, OutboundRoutingType.Multicast, OutboundRoutingType.Unicast);
+        
+        public void Dispose()
+        {
+            if (subscriptionManager.IsValueCreated)
+            {
+                subscriptionManager.Value.Stop();
+            }
+        }
     }
 }

@@ -4,24 +4,29 @@ using EventStore.ClientAPI;
 using EventStore.ClientAPI.Exceptions;
 using Newtonsoft.Json;
 using NServiceBus.Internal;
+using NServiceBus.Logging;
 
 namespace NServiceBus.Exchange
 {
     class ExchangeRepository
     {
+        static ILog Logger = LogManager.GetLogger<ExchangeRepository>();
+
         const string StreamName = "nsb-exchanges";
         IEventStoreConnection connection;
         EventStoreSubscription subscription;
         Action<ExchangeDataCollection> newVersionDetectedCallback;
+        CriticalError criticalError;
 
         public ExchangeRepository(IEventStoreConnection connection)
         {
             this.connection = connection;
         }
 
-        public async Task StartMonitoring(Action<ExchangeDataCollection> newVersionDetectedCallback)
+        public async Task StartMonitoring(Action<ExchangeDataCollection> newVersionDetectedCallback, CriticalError criticalError)
         {
             this.newVersionDetectedCallback = newVersionDetectedCallback;
+            this.criticalError = criticalError;
             subscription = await connection.SubscribeToStreamAsync(StreamName, true, OnNewVersion, OnSubscriptionDropped).ConfigureAwait(false);
         }
 
@@ -32,11 +37,20 @@ namespace NServiceBus.Exchange
 
         void OnSubscriptionDropped(EventStoreSubscription sub, SubscriptionDropReason reason, Exception error)
         {
-            if (reason != SubscriptionDropReason.UserInitiated)
+            if (reason == SubscriptionDropReason.UserInitiated)
+            {
+                return;
+            }
+            Logger.Error("Exchanges subscription dropped.", error);
+            try
             {
                 subscription = connection.SubscribeToStreamAsync(StreamName, true, OnNewVersion, OnSubscriptionDropped)
                     .GetAwaiter()
                     .GetResult();
+            }
+            catch (Exception ex)
+            {
+                criticalError.Raise("Can't reconnect to EventStore.", ex);
             }
         }
 
