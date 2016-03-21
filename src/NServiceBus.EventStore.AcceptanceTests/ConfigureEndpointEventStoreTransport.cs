@@ -18,6 +18,7 @@ public class ConfigureScenariosForEventStoreTransport : IConfigureSupportedScena
     {
         typeof(AllTransportsWithMessageDrivenPubSub),
         typeof(AllTransportsWithoutNativeDeferralAndWithAtomicSendAndReceive),
+        typeof(AllTransportsWithoutNativeDeferral),
         typeof(AllDtcTransports),
         typeof(AllNativeMultiQueueTransactionTransports),
     };

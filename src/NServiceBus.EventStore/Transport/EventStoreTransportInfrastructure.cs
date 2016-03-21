@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using NServiceBus.DelayedDelivery;
 using NServiceBus.Internal;
 using NServiceBus.Performance.TimeToBeReceived;
 using NServiceBus.Routing;
@@ -15,6 +16,7 @@ namespace NServiceBus
         SettingsHolder settings;
         ConnectionConfiguration connectionConfiguration;
         Lazy<SubscriptionManager> subscriptionManager;
+        Lazy<TimeoutProcessor> timeoutProcessor; 
 
         public EventStoreTransportInfrastructure(SettingsHolder settings, string connectionString)
         {
@@ -24,13 +26,18 @@ namespace NServiceBus
                 var disableCaching = settings.GetOrDefault<bool>("NServiceBus.EventStore.DisableExchangeCaching");
                 return new SubscriptionManager(connectionConfiguration, settings.LocalAddress(), !disableCaching);
             });
+            timeoutProcessor = new Lazy<TimeoutProcessor>(() =>
+            {
+                var uniqueId = settings.GetOrDefault<string>("NServiceBus.EventStore.TimeoutProcessorId") ?? Guid.NewGuid().ToString();
+                return new TimeoutProcessor(() => DateTime.UtcNow, uniqueId, connectionConfiguration.CreateConnection());
+            });
             this.settings = settings;
         }
 
         public override TransportReceiveInfrastructure ConfigureReceiveInfrastructure()
         {
             return new TransportReceiveInfrastructure(
-                () => new MessagePump(connectionConfiguration, subscriptionManager.Value),
+                () => new MessagePump(connectionConfiguration, subscriptionManager.Value, timeoutProcessor.Value),
                 () => new EventStoreQueueCreator(connectionConfiguration), PreStartupCheck 
                 );
         }
@@ -43,7 +50,7 @@ namespace NServiceBus
         public override TransportSendInfrastructure ConfigureSendInfrastructure()
         {            
             return new TransportSendInfrastructure(
-                () => new Dispatcher(connectionConfiguration, subscriptionManager.Value), PreStartupCheck);
+                () => new Dispatcher(connectionConfiguration, subscriptionManager.Value, timeoutProcessor.Value), PreStartupCheck);
         }
 
         public override TransportSubscriptionInfrastructure ConfigureSubscriptionInfrastructure()
@@ -71,7 +78,9 @@ namespace NServiceBus
         }
         public override IEnumerable<Type> DeliveryConstraints { get; } = new[]
         {
-            typeof(DiscardIfNotReceivedBefore)
+            typeof(DiscardIfNotReceivedBefore),
+            typeof(DelayDeliveryWith),
+            typeof(DoNotDeliverBefore)
         };
 
         public override TransportTransactionMode TransactionMode => TransportTransactionMode.ReceiveOnly;

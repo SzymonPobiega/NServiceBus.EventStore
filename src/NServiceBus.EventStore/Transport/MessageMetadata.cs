@@ -9,5 +9,6 @@ namespace NServiceBus
         public Dictionary<string, string> Headers { get; set; }
         public bool Empty { get; set; }
         public DateTime? TimeToBeReceived { get; set; }
+        public string Destination { get; set; }
     }
 }

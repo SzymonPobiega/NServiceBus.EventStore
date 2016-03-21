@@ -1,27 +1,25 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.ClientOperations;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
 using NServiceBus.Transports;
-using NServiceBus.Unicast.Transport;
 
 namespace NServiceBus
 {
     class MessagePump : IPushMessages
     {
-        public MessagePump(IConnectionConfiguration connectionConfiguration, SubscriptionManager subscriptionManager)
+        public MessagePump(IConnectionConfiguration connectionConfiguration, SubscriptionManager subscriptionManager, TimeoutProcessor timeoutProcessor)
         {
-            this.connectionConfiguration = connectionConfiguration;
+            this.connection = connectionConfiguration.CreateConnection();
             this.subscriptionManager = subscriptionManager;
+            this.timeoutProcessor = timeoutProcessor;
         }
 
         public async Task Init(Func<PushContext, Task> pipe, CriticalError criticalError, PushSettings settings)
@@ -29,14 +27,14 @@ namespace NServiceBus
             pipeline = pipe;
             inputQueue = settings.InputQueue;
             receiveCircuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventStoreReceive", TimeSpan.FromSeconds(30), ex => criticalError.Raise("Failed to receive from " + settings.InputQueue, ex));
-            connection = connectionConfiguration.CreateConnection();
             this.criticalError = criticalError;
             if (settings.PurgeOnStartup)
             {
                 //inputQueue.Purge();
             }
-            await subscriptionManager.Start(criticalError);
-            await connection.ConnectAsync();
+            await subscriptionManager.Start(criticalError).ConfigureAwait(false);
+            await connection.ConnectAsync().ConfigureAwait(false);
+            await timeoutProcessor.Start().ConfigureAwait(false);
         }
 
         public void Start(PushRuntimeSettings limitations)
@@ -153,6 +151,7 @@ namespace NServiceBus
 
         public async Task Stop()
         {
+            await timeoutProcessor.Stop().ConfigureAwait(false);
             subscription.Stop(TimeSpan.FromSeconds(60));
             cancellationTokenSource.Cancel();
 
@@ -169,7 +168,7 @@ namespace NServiceBus
             runningReceiveTasks.Clear();
         }
 
-        IConnectionConfiguration connectionConfiguration;
+        TimeoutProcessor timeoutProcessor;
         SubscriptionManager subscriptionManager;
         IEventStoreConnection connection;
         CancellationToken cancellationToken;

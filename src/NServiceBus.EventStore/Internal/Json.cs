@@ -1,4 +1,6 @@
+using System;
 using System.Text;
+using EventStore.ClientAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -23,6 +25,11 @@ namespace NServiceBus.Internal
         {
             string instring = JsonConvert.SerializeObject(source, Formatting.Indented, JsonSettings);
             return UTF8NoBom.GetBytes(instring);
+        }
+
+        public static EventData ToEventData(this object souece, string eventType)
+        {
+            return new EventData(Guid.NewGuid(), eventType, true, souece.ToJsonBytes(), new byte[0]);
         }
 
         public static string ToJson(this object source)
