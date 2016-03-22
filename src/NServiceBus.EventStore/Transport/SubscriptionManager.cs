@@ -13,35 +13,24 @@ namespace NServiceBus
 {
     class SubscriptionManager : IManageSubscriptions
     {
-        bool started;
         ExchangeManager exchangeManager;
         string localQueue;
-        IEventStoreConnection managerConnection;
         readonly ConcurrentDictionary<Type, string> typeTopologyConfiguredSet = new ConcurrentDictionary<Type, string>();
 
         public SubscriptionManager(IConnectionConfiguration connectionConfig, string localQueue, bool enableCaching)
         {
-            managerConnection = connectionConfig.CreateConnection();
-            managerConnection.ConnectAsync().GetAwaiter().GetResult();
-            exchangeManager = new ExchangeManager(managerConnection, enableCaching);
+            exchangeManager = new ExchangeManager(connectionConfig, enableCaching);
             this.localQueue = localQueue;
         }
 
-        public async Task Start(CriticalError criticalError)
+        public Task Start(CriticalError criticalError)
         {
-            if (started)
-            {
-                return;
-            }
-            await exchangeManager.Start(criticalError).ConfigureAwait(false);
-            started = true;
+            return exchangeManager.Start(criticalError);
         }
 
         public void Stop()
         {
             exchangeManager.Stop();
-            managerConnection.Dispose();
-            started = false;
         }
 
         public async Task<IEnumerable<string>> GetDestinationQueues(Type messageType)
@@ -74,7 +63,7 @@ namespace NServiceBus
 
         public Task Unsubscribe(Type eventType, ContextBag context)
         {
-            return exchangeManager.UnbindQueue(ExchangeName(eventType), localQueue);
+            return exchangeManager.UpdateExchanges(c => c.UnbindQueue(ExchangeName(eventType), localQueue));
         }
 
         static string ExchangeName(Type type)

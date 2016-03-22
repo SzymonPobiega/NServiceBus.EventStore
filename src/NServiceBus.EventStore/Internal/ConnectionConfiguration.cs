@@ -14,19 +14,19 @@ namespace NServiceBus.Internal
         private readonly string name;
 
         public ConnectionConfiguration(
-            ConnectionSettings connectionSettings, 
-            ClusterSettings clusterSettings, 
-            IPEndPoint singleNodeAddress, 
+            ConnectionSettings connectionSettings,
+            ClusterSettings clusterSettings,
+            IPEndPoint singleNodeAddress,
             IPEndPoint httpEndpoint,
             string name)
         {
             if (connectionSettings == null)
             {
-                throw new ArgumentNullException("connectionSettings");
+                throw new ArgumentNullException(nameof(connectionSettings));
             }
             if (httpEndpoint == null)
             {
-                throw new ArgumentNullException("httpEndpoint");
+                throw new ArgumentNullException(nameof(httpEndpoint));
             }
             if (clusterSettings == null && singleNodeAddress == null)
             {
@@ -43,13 +43,16 @@ namespace NServiceBus.Internal
             this.name = name;
         }
 
-        public IEventStoreConnection CreateConnection()
+        public IEventStoreConnection CreateConnection(string providedName)
         {
-            if (clusterSettings != null)
+            var conn = clusterSettings != null 
+                ? EventStoreConnection.Create(connectionSettings, clusterSettings) 
+                : EventStoreConnection.Create(connectionSettings, singleNodeAddress);
+            conn.Connected += (sender, args) =>
             {
-                return EventStoreConnection.Create(connectionSettings, clusterSettings, name);
-            }
-            return EventStoreConnection.Create(connectionSettings, singleNodeAddress, name);
+                Console.WriteLine(">> Connection {0}: {1}", args.Connection.ConnectionName, providedName);
+            };
+            return conn;
         }
     }
 }

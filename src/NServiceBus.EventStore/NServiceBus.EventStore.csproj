@@ -74,11 +74,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Exchange\Data\ExchangeDataCollection.cs" />
+    <Compile Include="Exchange\Data\ExchangeMonitor.cs" />
     <Compile Include="Exchange\Exchange.cs" />
     <Compile Include="Exchange\ExchangeCollection.cs" />
     <Compile Include="Exchange\ExchangeManager.cs" />
     <Compile Include="Exchange\Data\ExchangeRepository.cs" />
     <Compile Include="Exchange\Data\ExchangeData.cs" />
+    <Compile Include="Transport\EventStoreConnectionExtensions.cs" />
     <Compile Include="Transport\EventStoreQueueCreator.cs" />
     <Compile Include="Internal\ConnectionConfiguration.cs" />
     <Compile Include="Internal\ConnectionConfigurationBuilder.cs" />

@@ -242,6 +242,7 @@
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-unstable1656\ScenarioDescriptors\Transports.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-unstable1656\Scheduling\When_scheduling_a_recurring_task.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-unstable1656\SelfVerification\When_running_saga_tests.cs" />
+    <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-unstable1656\SubscriptionTest.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-unstable1656\Timeout\CyclingOutageTimeoutPersister.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-unstable1656\Timeout\When_timeout_storage_is_unavailable_temporarily.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-unstable1656\Tx\FakePromotableResourceManager.cs" />

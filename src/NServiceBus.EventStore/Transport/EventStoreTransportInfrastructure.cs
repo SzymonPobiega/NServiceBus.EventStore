@@ -13,6 +13,8 @@ namespace NServiceBus
 {
     class EventStoreTransportInfrastructure : TransportInfrastructure, IDisposable
     {
+        bool started;
+        bool stopped;
         SettingsHolder settings;
         ConnectionConfiguration connectionConfiguration;
         Lazy<SubscriptionManager> subscriptionManager;
@@ -29,7 +31,7 @@ namespace NServiceBus
             timeoutProcessor = new Lazy<TimeoutProcessor>(() =>
             {
                 var uniqueId = settings.GetOrDefault<string>("NServiceBus.EventStore.TimeoutProcessorId") ?? Guid.NewGuid().ToString();
-                return new TimeoutProcessor(() => DateTime.UtcNow, uniqueId, connectionConfiguration.CreateConnection());
+                return new TimeoutProcessor(() => DateTime.UtcNow, uniqueId, connectionConfiguration);
             });
             this.settings = settings;
         }
@@ -37,9 +39,31 @@ namespace NServiceBus
         public override TransportReceiveInfrastructure ConfigureReceiveInfrastructure()
         {
             return new TransportReceiveInfrastructure(
-                () => new MessagePump(connectionConfiguration, subscriptionManager.Value, timeoutProcessor.Value),
+                () => new MessagePump(connectionConfiguration, Start, Stop),
                 () => new EventStoreQueueCreator(connectionConfiguration), PreStartupCheck 
                 );
+        }
+
+        async Task Start(CriticalError criticalError)
+        {
+            if (started)
+            {
+                return;
+            }
+            await subscriptionManager.Value.Start(criticalError).ConfigureAwait(false);
+            await timeoutProcessor.Value.Start().ConfigureAwait(false);
+            started = true;
+        }
+
+        async Task Stop()
+        {
+            if (stopped)
+            {
+                return;
+            }
+            await timeoutProcessor.Value.Stop().ConfigureAwait(false);
+            subscriptionManager.Value.Stop();
+            stopped = true;
         }
 
         private static Task<StartupCheckResult> PreStartupCheck()

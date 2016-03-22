@@ -32,7 +32,7 @@ namespace NServiceBus
 
         public async Task CreateQueueIfNecessary(QueueBindings queueBindings, string identity)
         {
-            using (var connection = connectionConfig.CreateConnection())
+            using (var connection = connectionConfig.CreateConnection("CreateSubscription"))
             {
                 await connection.ConnectAsync();
                 foreach (var queueBinding in queueBindings.ReceivingAddresses)

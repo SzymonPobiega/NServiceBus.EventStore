@@ -30,9 +30,9 @@ namespace NServiceBus
             }
             else
             {
-                using (var connection = connectionConfig.CreateConnection())
+                using (var connection = connectionConfig.CreateConnection("Dispatch"))
                 {
-                    await connection.ConnectAsync();
+                    await connection.ConnectAsync().ConfigureAwait(false);
                     await Dispatch(outgoingMessages, connection).ConfigureAwait(false);
                 }
             }
@@ -60,7 +60,7 @@ namespace NServiceBus
                         Destination = op.Destination
                     };
                     var eventData = ToEventData(op, meta);
-                    await timeoutProcessor.Defer(eventData, dueTime.Value).ConfigureAwait(false);
+                    await timeoutProcessor.Defer(eventData, dueTime.Value, connection).ConfigureAwait(false);
                 }
                 else
                 {

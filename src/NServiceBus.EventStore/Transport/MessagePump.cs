@@ -15,11 +15,12 @@ namespace NServiceBus
 {
     class MessagePump : IPushMessages
     {
-        public MessagePump(IConnectionConfiguration connectionConfiguration, SubscriptionManager subscriptionManager, TimeoutProcessor timeoutProcessor)
+        
+        public MessagePump(IConnectionConfiguration connectionConfiguration, Func<CriticalError, Task> onStart, Func<Task> onStop)
         {
-            this.connection = connectionConfiguration.CreateConnection();
-            this.subscriptionManager = subscriptionManager;
-            this.timeoutProcessor = timeoutProcessor;
+            this.onStart = onStart;
+            this.onStop = onStop;
+            this.connection = connectionConfiguration.CreateConnection("MessagePump");
         }
 
         public async Task Init(Func<PushContext, Task> pipe, CriticalError criticalError, PushSettings settings)
@@ -32,9 +33,8 @@ namespace NServiceBus
             {
                 //inputQueue.Purge();
             }
-            await subscriptionManager.Start(criticalError).ConfigureAwait(false);
             await connection.ConnectAsync().ConfigureAwait(false);
-            await timeoutProcessor.Start().ConfigureAwait(false);
+            await onStart(criticalError).ConfigureAwait(false);
         }
 
         public void Start(PushRuntimeSettings limitations)
@@ -54,7 +54,7 @@ namespace NServiceBus
             {
                 return;
             }
-            Logger.Error("Message pump subscription dropped.", e);
+            Logger.Error("Message pump subscription dropped: " + dropReason, e);
             try
             {
                 subscription = connection.ConnectToPersistentSubscription(inputQueue, inputQueue, OnEvent, SubscriptionDropped);
@@ -151,7 +151,7 @@ namespace NServiceBus
 
         public async Task Stop()
         {
-            await timeoutProcessor.Stop().ConfigureAwait(false);
+            await onStop().ConfigureAwait(false);
             subscription.Stop(TimeSpan.FromSeconds(60));
             cancellationTokenSource.Cancel();
 
@@ -163,13 +163,13 @@ namespace NServiceBus
             {
                 Logger.Error("The message pump failed to stop with in the time allowed(30s)");
             }
-            connection.Close();
+            connection.EnsureClosed();
             concurrencyLimiter.Dispose();
             runningReceiveTasks.Clear();
         }
 
-        TimeoutProcessor timeoutProcessor;
-        SubscriptionManager subscriptionManager;
+        Func<CriticalError, Task> onStart;
+        Func<Task> onStop;
         IEventStoreConnection connection;
         CancellationToken cancellationToken;
         CancellationTokenSource cancellationTokenSource;

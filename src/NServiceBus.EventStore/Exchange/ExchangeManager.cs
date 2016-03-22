@@ -3,27 +3,34 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
 
 namespace NServiceBus.Exchange
 {
     class ExchangeManager
     {
+        IConnectionConfiguration connectionConfiguration;
         bool enableCaching;
-        ExchangeRepository repository;
         volatile ExchangeCollection cachedExchangeCollection;
+        ExchangeMonitor monitor;
+        IEventStoreConnection monitorConnection;
 
-        public ExchangeManager(IEventStoreConnection connection, bool enableCaching = true)
+        public ExchangeManager(IConnectionConfiguration connectionConfiguration, bool enableCaching = true)
         {
+            this.connectionConfiguration = connectionConfiguration;
             this.enableCaching = enableCaching;
-            repository = new ExchangeRepository(connection);
         }
 
         public async Task Start(CriticalError criticalError)
         {
-            var data = await repository.LoadExchanges().ConfigureAwait(false);
+            var data = await LoadExchanges().ConfigureAwait(false);
             cachedExchangeCollection = new ExchangeCollection(data);
 
-            await repository.StartMonitoring(OnNewVersion, criticalError).ConfigureAwait(false);
+            monitorConnection = connectionConfiguration.CreateConnection("ExchangeMonitor");
+            await monitorConnection.ConnectAsync().ConfigureAwait(false);
+
+            monitor = new ExchangeMonitor(monitorConnection, OnNewVersion, criticalError);
+            monitor.StartMonitoring();
         }
 
         void OnNewVersion(ExchangeDataCollection newData)
@@ -33,40 +40,37 @@ namespace NServiceBus.Exchange
 
         public void Stop()
         {
-            repository.StopMonitoring();
+            monitor.StopMonitoring();
+            monitorConnection.EnsureClosed();
         }
 
         public async Task UpdateExchanges(Action<ExchangeDataCollection> updateAction)
         {
-            await repository.UpdateExchanges(updateAction).ConfigureAwait(false);
-        }
-
-        public Task DeclareExchange(string name)
-        {
-            return repository.DeclareExchange(name);
-        }
-
-        public Task BindExchange(string upstream, string downstream)
-        {
-            return repository.BindExchange(upstream, downstream);
-        }
-
-        public Task BindQueue(string exchange, string queue)
-        {
-            return repository.BindQueue(exchange, queue);
-        }
-
-        public Task UnbindQueue(string exchange, string queue)
-        {
-            return repository.UnbindQueue(exchange, queue);
+            using (var connection = connectionConfiguration.CreateConnection("UpdateExchanges"))
+            {
+                await connection.ConnectAsync().ConfigureAwait(false);
+                var repo = new ExchangeRepository(connection);
+                await repo.UpdateExchanges(updateAction).ConfigureAwait(false);
+            }
         }
 
         public async Task<IEnumerable<string>> GetDestinationQueues(string destinationExchange)
         {
             var copy = enableCaching 
                 ? cachedExchangeCollection 
-                : new ExchangeCollection(await repository.LoadExchanges().ConfigureAwait(false));
+                : new ExchangeCollection(await LoadExchanges());
             return copy.GetDestinationQueues(destinationExchange);
+        }
+
+        async Task<ExchangeDataCollection> LoadExchanges()
+        {
+            ExchangeRepository repo;
+            using (var connection = connectionConfiguration.CreateConnection("LoadExchanges"))
+            {
+                await connection.ConnectAsync().ConfigureAwait(false);
+                repo = new ExchangeRepository(connection);
+                return await repo.LoadExchanges().ConfigureAwait(false);
+            }
         }
     }
 }

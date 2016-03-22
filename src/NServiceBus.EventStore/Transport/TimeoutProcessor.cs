@@ -12,11 +12,11 @@ namespace NServiceBus
 {
     public class TimeoutProcessor
     {
-        public TimeoutProcessor(Func<DateTime> currentTimeProvider, string uniqueId, IEventStoreConnection connection)
+        public TimeoutProcessor(Func<DateTime> currentTimeProvider, string uniqueId, IConnectionConfiguration connectionConfiguration)
         {
             this.currentTimeProvider = currentTimeProvider;
             this.uniqueId = uniqueId;
-            this.connection = connection;
+            this.connection = connectionConfiguration.CreateConnection("TimeoutProcessor");
         }
 
         public async Task Start()
@@ -25,6 +25,7 @@ namespace NServiceBus
             executionId = Guid.NewGuid();
             tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
+            // ReSharper disable once MethodSupportsCancellation
             pollerTask = Task.Run(() => Poll(token));
         }
 
@@ -46,6 +47,7 @@ namespace NServiceBus
                     //await circuitBreaker.Failure(ex).ConfigureAwait(false);
                 }
             }
+            connection.EnsureClosed();
         }
 
         async Task InnerPoll(CancellationToken cancellationToken)
@@ -62,11 +64,11 @@ namespace NServiceBus
             }
         }
 
-        public async Task Defer(EventData eventData, DateTime dueTime)
+        public async Task Defer(EventData eventData, DateTime dueTime, IEventStoreConnection dispatchConnection)
         {
             if (!storeInitialized)
             {
-                var readResult = await connection.ReadStreamEventsBackwardAsync(TimeoutProcessorStateStream, -1, 1, true).ConfigureAwait(false);
+                var readResult = await dispatchConnection.ReadStreamEventsBackwardAsync(TimeoutProcessorStateStream, -1, 1, true).ConfigureAwait(false);
                 if (readResult.Status == SliceReadStatus.Success)
                 {
                     storeInitialized = true;
@@ -80,16 +82,22 @@ namespace NServiceBus
             while (true)
             {
                 var currentEpochStream = "nsb-timeouts-" + currentEpoch;
-                var sliceReadResult = await connection.ReadStreamEventsBackwardAsync(currentEpochStream, -1, 1, true);
+                var sliceReadResult = await dispatchConnection.ReadStreamEventsBackwardAsync(currentEpochStream, -1, 1, true);
                 if (sliceReadResult.Status == SliceReadStatus.StreamDeleted)
                 {
-                    Console.WriteLine("Slice {0} deleted, moving on", currentEpoch);
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.DebugFormat("Slice {0} deleted, moving on.", currentEpoch);
+                    }
                     currentEpoch++;
                     continue;
                 }
                 if (sliceReadResult.Status == SliceReadStatus.Success && sliceReadResult.Events[0].Event.EventType == SliceEndEventType)
                 {
-                    Console.WriteLine("Slice {0} closed, moving on", currentEpoch);
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.DebugFormat("Slice {0} closed, moving on.", currentEpoch);
+                    }                    
                     currentEpoch++;
                     continue;
                 }
@@ -99,13 +107,19 @@ namespace NServiceBus
 
                 try
                 {
-                    await connection.AppendToStreamAsync(currentEpochStream, expectedVersion, eventData).ConfigureAwait(false);
-                    Console.WriteLine("Stored timeout in slice {0}", currentEpoch);
+                    await dispatchConnection.AppendToStreamAsync(currentEpochStream, expectedVersion, eventData).ConfigureAwait(false);
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.DebugFormat("Stored timeout in slice {0}.", currentEpoch);
+                    }
                     break;
                 }
                 catch (WrongExpectedVersionException)
                 {
-                    Console.WriteLine("Wrong version: {0}", expectedVersion);
+                    if (Logger.IsDebugEnabled)
+                    {
+                        Logger.DebugFormat("Expected version {0} but failed. Retrying.", expectedVersion);
+                    }
                     //Ignore -> continue the loop
                 }
             }
@@ -124,7 +138,10 @@ namespace NServiceBus
 
         async Task SpinOnce(long currentEpoch)
         {
-            Console.WriteLine("Processing slice {0}", currentEpoch);
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.DebugFormat("Processing slice {0}", currentEpoch);
+            }
             var sliceEndEvent = new SliceEndEvent
             {
                 ProcessorId = uniqueId
@@ -138,8 +155,10 @@ namespace NServiceBus
             {
                 return;
             }
-            Console.WriteLine("Marked epoch {0} as closed", currentEpoch);
-
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.DebugFormat("Marked slice {0} as closed", currentEpoch);
+            }
             StreamEventsSlice sliceReadResult;
             try
             {
@@ -160,7 +179,10 @@ namespace NServiceBus
                 return;
             }
             var timeoutEvents = sliceReadResult.Events.Where(e => e.Event.EventType != SliceEndEventType).ToArray();
-            Console.WriteLine("Epoch {0} has {1} timeouts to dispatch", currentEpoch, timeoutEvents.Length);
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.DebugFormat("Slice {0} has {1} timeouts to dispatch.", currentEpoch, timeoutEvents.Length);
+            }
             foreach (var timeoutEvent in timeoutEvents)
             {
                 var @event = timeoutEvent.Event;
@@ -176,14 +198,17 @@ namespace NServiceBus
             };
             await connection.AppendToStreamAsync(TimeoutProcessorStateStream, ExpectedVersion.Any, stateEvent.ToEventData("$processor-state")).ConfigureAwait(false);
             await connection.DeleteStreamAsync(currentEpochStream, ExpectedVersion.Any, true).ConfigureAwait(false);
-            Console.WriteLine("Deleted slice {0}", currentEpoch);
+            if (Logger.IsDebugEnabled)
+            {
+                Logger.DebugFormat("Deleted slice {0}", currentEpoch);
+            }
         }
 
-        public async Task Stop()
+        public Task Stop()
         {
             tokenSource.Cancel();
-            await pollerTask.ConfigureAwait(false);
-            connection.Close();
+            pollerTask.Wait();
+            return pollerTask;
         }
 
         long CurrentEpoch()

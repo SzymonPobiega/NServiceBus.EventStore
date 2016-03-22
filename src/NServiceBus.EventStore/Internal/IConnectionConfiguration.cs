@@ -4,6 +4,6 @@ namespace NServiceBus.Internal
 {
     public interface IConnectionConfiguration
     {
-        IEventStoreConnection CreateConnection();
+        IEventStoreConnection CreateConnection(string type);
     }
 }

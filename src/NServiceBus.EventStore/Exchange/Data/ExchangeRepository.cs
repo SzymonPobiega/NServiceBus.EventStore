@@ -10,74 +10,12 @@ namespace NServiceBus.Exchange
 {
     class ExchangeRepository
     {
-        static ILog Logger = LogManager.GetLogger<ExchangeRepository>();
-
-        const string StreamName = "nsb-exchanges";
+        public const string StreamName = "nsb-exchanges";
         IEventStoreConnection connection;
-        EventStoreSubscription subscription;
-        Action<ExchangeDataCollection> newVersionDetectedCallback;
-        CriticalError criticalError;
 
         public ExchangeRepository(IEventStoreConnection connection)
         {
             this.connection = connection;
-        }
-
-        public async Task StartMonitoring(Action<ExchangeDataCollection> newVersionDetectedCallback, CriticalError criticalError)
-        {
-            this.newVersionDetectedCallback = newVersionDetectedCallback;
-            this.criticalError = criticalError;
-            subscription = await connection.SubscribeToStreamAsync(StreamName, true, OnNewVersion, OnSubscriptionDropped).ConfigureAwait(false);
-        }
-
-        public void StopMonitoring()
-        {
-            subscription.Unsubscribe();
-        }
-
-        void OnSubscriptionDropped(EventStoreSubscription sub, SubscriptionDropReason reason, Exception error)
-        {
-            if (reason == SubscriptionDropReason.UserInitiated)
-            {
-                return;
-            }
-            Logger.Error("Exchanges subscription dropped.", error);
-            try
-            {
-                subscription = connection.SubscribeToStreamAsync(StreamName, true, OnNewVersion, OnSubscriptionDropped)
-                    .GetAwaiter()
-                    .GetResult();
-            }
-            catch (Exception ex)
-            {
-                criticalError.Raise("Can't reconnect to EventStore.", ex);
-            }
-        }
-
-        void OnNewVersion(EventStoreSubscription sub, ResolvedEvent @event)
-        {
-            var exchangesData = @event.Event.Data.ParseJson<ExchangeDataCollection>();
-            newVersionDetectedCallback(exchangesData);
-        }
-
-        public Task DeclareExchange(string name)
-        {
-            return UpdateExchanges(c => c.DeclareExchange(name));
-        }
-
-        public Task BindExchange(string upstream, string downstream)
-        {
-            return UpdateExchanges(c => c.BindExchange(upstream, downstream));
-        }
-
-        public Task BindQueue(string exchange, string queue)
-        {
-            return UpdateExchanges(c => c.BindQueue(exchange, queue));
-        }
-
-        public Task UnbindQueue(string exchange, string queue)
-        {
-            return UpdateExchanges(c => c.UnbindQueue(exchange, queue));
         }
 
         public async Task<ExchangeDataCollection> LoadExchanges()
@@ -108,7 +46,6 @@ namespace NServiceBus.Exchange
                 }
             }
         }
-
 
         async Task<Tuple<ExchangeDataCollection, int>> GetExchanges()
         {
