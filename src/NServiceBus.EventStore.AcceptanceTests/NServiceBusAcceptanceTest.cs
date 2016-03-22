@@ -16,6 +16,8 @@ namespace NServiceBus.AcceptanceTests
         public void SetUpEnvironment()
         {
             Environment.SetEnvironmentVariable("EventStoreTransport.ConnectionString", "singleNode=127.0.0.1;user=admin;password=changeit");
+            Environment.SetEnvironmentVariable("Transport.UseSpecific", "EventStoreTransport");
+            Environment.SetEnvironmentVariable("Persistence.UseSpecific", "EventStorePersistence");
         }
     }
 }

@@ -25,15 +25,15 @@ namespace NServiceBus.EventStore.AcceptanceTests.App_Packages.NSB.AcceptanceTest
             await connection.ConnectAsync().ConfigureAwait(false);
             var streamName = Guid.NewGuid().ToString();
 
-            //var sub = await connection.SubscribeToStreamAsync(streamName, true, (subscription, e) => { }).ConfigureAwait(false);
-            var sub = connection.SubscribeToStreamAsync(streamName, true, (subscription, e) => { }).GetAwaiter().GetResult();
+            var sub = await connection.SubscribeToStreamAsync(streamName, true, (subscription, e) => { }).ConfigureAwait(false);
+            //var sub = connection.SubscribeToStreamAsync(streamName, true, (subscription, e) => { }).GetAwaiter().GetResult();
 
-            sub.Unsubscribe();
+            //sub.Unsubscribe();
 
             //Verify closed
             connection.Closed += (sender, args) =>
             {
-                Console.WriteLine("{0}:>> Closed", DateTime.UtcNow.ToLongTimeString());
+                Console.WriteLine("{0}:>> Closed: "+args.Reason, DateTime.UtcNow.ToLongTimeString());
                 closeEvent.Set();
             };
             Console.WriteLine("{0}>> Calling Close", DateTime.UtcNow.ToLongTimeString());

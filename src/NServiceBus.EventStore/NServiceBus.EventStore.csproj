@@ -80,6 +80,16 @@
     <Compile Include="Exchange\ExchangeManager.cs" />
     <Compile Include="Exchange\Data\ExchangeRepository.cs" />
     <Compile Include="Exchange\Data\ExchangeData.cs" />
+    <Compile Include="Persistence\ConfigureEventStoreSagaPersister.cs" />
+    <Compile Include="Persistence\EventStorePersistence.cs" />
+    <Compile Include="Persistence\EventStoreSagaPersister.cs" />
+    <Compile Include="Persistence\EventStoreSagaStorage.cs" />
+    <Compile Include="Persistence\EventStoreSynchronizedStorage.cs" />
+    <Compile Include="Persistence\EventStoreSynchronizedStorageFeature.cs" />
+    <Compile Include="Persistence\EventStoreSynchronizedStorageSession.cs" />
+    <Compile Include="Persistence\EventStoreSynchronizedStorageSessionExtensions.cs" />
+    <Compile Include="Persistence\SagaIndexEvent.cs" />
+    <Compile Include="Persistence\SagaVersion.cs" />
     <Compile Include="Transport\EventStoreConnectionExtensions.cs" />
     <Compile Include="Transport\EventStoreQueueCreator.cs" />
     <Compile Include="Internal\ConnectionConfiguration.cs" />

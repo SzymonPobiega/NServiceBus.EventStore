@@ -14,7 +14,7 @@ namespace NServiceBus
                 closeEvent.Set();
             };
             connection.Close();
-            if (!closeEvent.Wait(timeout ?? TimeSpan.FromSeconds(5)))
+            if (!closeEvent.Wait(timeout ?? TimeSpan.FromSeconds(1)))
             {
                 Console.WriteLine("Failed to close connection  {0}", connection.ConnectionName);
             }
