@@ -73,6 +73,11 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EventSourcing\Aggregate.cs" />
+    <Compile Include="EventSourcing\AggregateLockEvent.cs" />
+    <Compile Include="EventSourcing\OutgoingMessage.cs" />
+    <Compile Include="EventSourcing\Port.cs" />
+    <Compile Include="EventSourcing\Repository.cs" />
     <Compile Include="Exchanges\Data\ExchangeDataCollection.cs" />
     <Compile Include="Exchanges\Data\ExchangeMonitor.cs" />
     <Compile Include="Exchanges\Exchange.cs" />

@@ -41,10 +41,11 @@ namespace NServiceBus
             persistenceOperations.Add(new OutboxPersistenceOperation(destinationStream, eventData));
         }
 
-        public void Persist(OutboxMessage outboxMessage, string outboxStream)
+        public OutboxPersistenceOperation[] Persist(OutboxMessage outboxMessage, string outboxStream)
         {
             transportOperations = outboxMessage.TransportOperations.ToArray();
             this.outboxStream = outboxStream;
+            return persistenceOperations.ToArray();
         }
 
         string outboxStream;

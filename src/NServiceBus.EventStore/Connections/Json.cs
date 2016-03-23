@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 using EventStore.ClientAPI;
 using Newtonsoft.Json;
@@ -20,6 +21,8 @@ namespace NServiceBus.Internal
                 TypeNameHandling = TypeNameHandling.None,
                 Converters = new JsonConverter[] { new StringEnumConverter() }
             };
+
+        static readonly Newtonsoft.Json.JsonSerializer Serializer = Newtonsoft.Json.JsonSerializer.Create(JsonSettings);
 
         public static byte[] ToJsonBytes(this object source)
         {
@@ -47,6 +50,12 @@ namespace NServiceBus.Internal
         public static T ParseJson<T>(this byte[] json)
         {
             var result = JsonConvert.DeserializeObject<T>(UTF8NoBom.GetString(json), JsonSettings);
+            return result;
+        }
+
+        public static object ParseJson(this byte[] json, Type type)
+        {
+            var result = Serializer.Deserialize(new StringReader(UTF8NoBom.GetString(json)), type);
             return result;
         }
 

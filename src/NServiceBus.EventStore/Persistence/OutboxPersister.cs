@@ -55,7 +55,8 @@ namespace NServiceBus
         public Task Store(OutboxMessage message, OutboxTransaction transaction, ContextBag context)
         {
             var typedTransaction = (EventStoreOutboxTransaction) transaction;
-            typedTransaction.Persist(message, GetStreamName(message.MessageId));
+            var persistenceOps = typedTransaction.Persist(message, GetStreamName(message.MessageId));
+            context.Set(persistenceOps);
             return Task.FromResult(0);
         }
 

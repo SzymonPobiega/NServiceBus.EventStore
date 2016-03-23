@@ -262,6 +262,7 @@
     <Compile Include="ConfigureEndpointEventStoreTransport.cs" />
     <Compile Include="NServiceBusAcceptanceTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="When_sending_from_aggregate.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

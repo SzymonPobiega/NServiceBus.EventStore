@@ -59,7 +59,7 @@ namespace NServiceBus
         ///     Appends an event to specified stream.
         /// </summary>
         public static Task AppendToStreamAsync(this SynchronizedStorageSession session, string streamId,
-            int expectedVersion, EventData e)
+            int expectedVersion, params EventData[] e)
         {
             return DowncastSession(session).Connection.AppendToStreamAsync(streamId, expectedVersion, e);
         }
