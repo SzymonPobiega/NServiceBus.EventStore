@@ -15,8 +15,8 @@ namespace NServiceBus
         {
             Supports<StorageType.Sagas>(s =>
             {
-                s.EnableFeatureByDefault<EventStoreSynchronizedStorageFeature>();
-                s.EnableFeatureByDefault<EventStoreSagaStorageFeature>();
+                s.EnableFeatureByDefault<SynchronizedStorageFeature>();
+                s.EnableFeatureByDefault<SagaPersisterFeature>();
             });
         }
     }

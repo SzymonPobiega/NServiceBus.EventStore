@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 
-namespace NServiceBus.Exchange
+namespace NServiceBus
 {
     class ExchangeData
     {

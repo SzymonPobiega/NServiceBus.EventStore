@@ -6,11 +6,11 @@ using NServiceBus.Transports;
 
 namespace NServiceBus
 {
-    class EventStoreQueueCreator : ICreateQueues
+    class QueueCreator : ICreateQueues
     {
         private readonly IConnectionConfiguration connectionConfig;
 
-        public EventStoreQueueCreator(IConnectionConfiguration connectionConfig)
+        public QueueCreator(IConnectionConfiguration connectionConfig)
         {
             this.connectionConfig = connectionConfig;
         }

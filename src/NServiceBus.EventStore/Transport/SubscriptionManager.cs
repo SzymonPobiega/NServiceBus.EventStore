@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using NServiceBus.Exchange;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Transports;

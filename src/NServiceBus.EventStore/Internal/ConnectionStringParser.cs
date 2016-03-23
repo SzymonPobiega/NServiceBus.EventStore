@@ -5,7 +5,7 @@ using EventStore.ClientAPI.SystemData;
 
 namespace NServiceBus.Internal
 {
-    public class ConnectionStringParser : IConnectionStringParser
+    public class ConnectionStringParser
     {
         private static readonly List<PropertyParser> propertyParsers
             = new List<PropertyParser>()

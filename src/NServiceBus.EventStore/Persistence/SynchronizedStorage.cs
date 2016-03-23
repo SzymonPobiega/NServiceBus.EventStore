@@ -8,7 +8,7 @@ using NServiceBus.Transports;
 
 namespace NServiceBus
 {
-    class EventStoreSynchronizedStorage : ISynchronizedStorageAdapter, ISynchronizedStorage
+    class SynchronizedStorage : ISynchronizedStorageAdapter, ISynchronizedStorage
     {
         static readonly Task<CompletableSynchronizedStorageSession> EmptyResult = Task.FromResult<CompletableSynchronizedStorageSession>(null);
 

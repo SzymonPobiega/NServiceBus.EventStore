@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NServiceBus.Exchange
+namespace NServiceBus
 {
     class ExchangeDataCollection
     {

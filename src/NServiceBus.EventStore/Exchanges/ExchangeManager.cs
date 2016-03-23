@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using NServiceBus.Internal;
 
-namespace NServiceBus.Exchange
+namespace NServiceBus
 {
     class ExchangeManager
     {

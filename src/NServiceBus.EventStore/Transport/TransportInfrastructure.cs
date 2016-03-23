@@ -11,7 +11,7 @@ using NServiceBus.Transports;
 
 namespace NServiceBus
 {
-    class EventStoreTransportInfrastructure : TransportInfrastructure, IDisposable
+    class TransportInfrastructure : Transports.TransportInfrastructure, IDisposable
     {
         bool started;
         bool stopped;
@@ -20,7 +20,7 @@ namespace NServiceBus
         Lazy<SubscriptionManager> subscriptionManager;
         Lazy<TimeoutProcessor> timeoutProcessor; 
 
-        public EventStoreTransportInfrastructure(SettingsHolder settings, string connectionString)
+        public TransportInfrastructure(SettingsHolder settings, string connectionString)
         {
             connectionConfiguration = new ConnectionStringParser().Parse(connectionString);
             subscriptionManager = new Lazy<SubscriptionManager>(() =>
@@ -40,7 +40,7 @@ namespace NServiceBus
         {
             return new TransportReceiveInfrastructure(
                 () => new MessagePump(connectionConfiguration, Start, Stop),
-                () => new EventStoreQueueCreator(connectionConfiguration), PreStartupCheck 
+                () => new QueueCreator(connectionConfiguration), PreStartupCheck 
                 );
         }
 

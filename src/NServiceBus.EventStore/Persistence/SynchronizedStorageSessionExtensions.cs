@@ -7,7 +7,7 @@ namespace NServiceBus
     /// <summary>
     /// Provides extensions for using EventStore persistence.
     /// </summary>
-    public static class EventStoreSynchronizedStorageSessionExtensions
+    public static class SynchronizedStorageSessionExtensions
     {
         /// <summary>
         /// Gets the connection to the event store.

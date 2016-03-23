@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
 
-namespace NServiceBus.Exchange
+namespace NServiceBus
 {
     class ExchangeRepository
     {

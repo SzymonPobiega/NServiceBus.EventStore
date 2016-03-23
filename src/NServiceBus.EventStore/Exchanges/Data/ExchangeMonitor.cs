@@ -4,7 +4,7 @@ using EventStore.ClientAPI;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
 
-namespace NServiceBus.Exchange
+namespace NServiceBus
 {
     class ExchangeMonitor
     {

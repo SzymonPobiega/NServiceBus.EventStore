@@ -4,7 +4,7 @@ using EventStore.ClientAPI;
 
 namespace NServiceBus
 {
-    public static class EventStoreConnectionExtensions
+    static class EventStoreConnectionExtensions
     {
         public static void EnsureClosed(this IEventStoreConnection connection, TimeSpan? timeout = null)
         {

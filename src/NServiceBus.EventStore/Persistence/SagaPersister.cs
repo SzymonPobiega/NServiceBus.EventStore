@@ -11,7 +11,7 @@ using NServiceBus.Sagas;
 
 namespace NServiceBus
 {
-    class EventStoreSagaPersister : ISagaPersister
+    class SagaPersister : ISagaPersister
     {
         const string SagaDataEventType = "$saga-data";
         const string SagaIndexEventType = "$saga-index";
