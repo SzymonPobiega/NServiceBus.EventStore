@@ -14,7 +14,10 @@ namespace NServiceBus
 
         public Task<CompletableSynchronizedStorageSession> TryAdapt(OutboxTransaction transaction, ContextBag context)
         {
-            return EmptyResult;
+            var typedTransaction = transaction as EventStoreOutboxTransaction;
+            return typedTransaction != null 
+                ? Task.FromResult<CompletableSynchronizedStorageSession>(new OutboxEventStoreSynchronizedStorageSession(typedTransaction.Connection, typedTransaction)) 
+                : EmptyResult;
         }
 
         public Task<CompletableSynchronizedStorageSession> TryAdapt(TransportTransaction transportTransaction, ContextBag context)

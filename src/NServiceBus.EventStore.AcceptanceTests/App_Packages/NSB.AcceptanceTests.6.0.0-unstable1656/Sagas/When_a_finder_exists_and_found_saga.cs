@@ -1,4 +1,7 @@
-﻿namespace NServiceBus.AcceptanceTests.Sagas
+﻿using System;
+using EventStore.ClientAPI;
+
+namespace NServiceBus.AcceptanceTests.Sagas
 {
     using System.Threading.Tasks;
     using NServiceBus.AcceptanceTesting;
@@ -10,7 +13,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class When_a_finder_exists_and_found_saga
+    public class When_a_finder_exists_and_found_saga : NServiceBusAcceptanceTest
     {
         [Test]
         public async Task Should_find_saga_and_not_correlate()
@@ -44,10 +47,13 @@
                 public Task<TestSaga08.SagaData08> FindBy(SomeOtherMessage message, SynchronizedStorageSession storageSession, ReadOnlyContextBag context)
                 {
                     Context.FinderUsed = true;
-                    return Task.FromResult(new TestSaga08.SagaData08
+                    var sagaData = new TestSaga08.SagaData08
                     {
-                        Property = "jfbsjdfbsdjh"
-                    });
+                        Property = "jfbsjdfbsdjh",
+                        Id = Guid.NewGuid()
+                    };
+                    storageSession.ProvideSagaVersion(sagaData, ExpectedVersion.NoStream);
+                    return Task.FromResult(sagaData);
                 }
             }
 

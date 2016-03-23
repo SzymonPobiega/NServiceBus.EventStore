@@ -2,16 +2,14 @@
 {
     public class SagaVersion
     {
-        private readonly int version;
+        public bool? AlreadyLocked { get; }
+        public int Version { get; }
 
-        public SagaVersion(int version)
+        public SagaVersion(int version, bool? alreadyLocked)
         {
-            this.version = version;
+            this.Version = version;
+            this.AlreadyLocked = alreadyLocked;
         }
 
-        public int Version
-        {
-            get { return version; }
-        }
     }
 }

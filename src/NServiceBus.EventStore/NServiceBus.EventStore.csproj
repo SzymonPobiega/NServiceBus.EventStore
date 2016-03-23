@@ -80,7 +80,14 @@
     <Compile Include="Exchanges\ExchangeManager.cs" />
     <Compile Include="Exchanges\Data\ExchangeRepository.cs" />
     <Compile Include="Exchanges\Data\ExchangeData.cs" />
+    <Compile Include="Persistence\EventStoreOutboxTransaction.cs" />
     <Compile Include="Persistence\EventStorePersistence.cs" />
+    <Compile Include="Persistence\OutboxEventStoreSynchronizedStorageSession.cs" />
+    <Compile Include="Persistence\OutboxPersister.cs" />
+    <Compile Include="Persistence\OutboxPersistenceOperation.cs" />
+    <Compile Include="Persistence\OutboxPersisterFeature.cs" />
+    <Compile Include="Persistence\OutboxRecordEvent.cs" />
+    <Compile Include="Persistence\SagaDataLockEvent.cs" />
     <Compile Include="Persistence\SagaPersister.cs" />
     <Compile Include="Persistence\SagaPersisterFeature.cs" />
     <Compile Include="Persistence\SynchronizedStorage.cs" />
@@ -89,6 +96,7 @@
     <Compile Include="Persistence\SynchronizedStorageSessionExtensions.cs" />
     <Compile Include="Persistence\SagaIndexEvent.cs" />
     <Compile Include="Persistence\SagaVersion.cs" />
+    <Compile Include="TaskEx.cs" />
     <Compile Include="Transport\EventStoreConnectionExtensions.cs" />
     <Compile Include="Transport\QueueCreator.cs" />
     <Compile Include="Connections\ConnectionConfiguration.cs" />
