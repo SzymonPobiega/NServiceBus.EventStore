@@ -130,7 +130,7 @@ namespace NServiceBus
             {
                 return null;
             }
-            var headers = metadata.Headers.ToDictionary(x => x.Key.ToPascalCase(), x => x.Value);
+            var headers = metadata.Headers;
             var transportTransaction = new TransportTransaction();
             transportTransaction.Set(connection);
             var data = metadata.Empty //because EventStore inserts {}

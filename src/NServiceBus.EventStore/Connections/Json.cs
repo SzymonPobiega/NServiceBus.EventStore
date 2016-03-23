@@ -12,7 +12,7 @@ namespace NServiceBus.Internal
     {
         public static readonly JsonSerializerSettings JsonSettings = new JsonSerializerSettings
             {
-                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                //ContractResolver = new CamelCasePropertyNamesContractResolver(),
                 DateFormatHandling = DateFormatHandling.IsoDateFormat,
                 NullValueHandling = NullValueHandling.Ignore,
                 DefaultValueHandling = DefaultValueHandling.Ignore,

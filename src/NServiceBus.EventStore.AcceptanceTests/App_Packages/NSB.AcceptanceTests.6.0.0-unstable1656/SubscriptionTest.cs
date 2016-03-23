@@ -3,6 +3,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
+using NServiceBus.Internal;
 using NUnit.Framework;
 
 namespace NServiceBus.EventStore.AcceptanceTests.App_Packages.NSB.AcceptanceTests._6._0

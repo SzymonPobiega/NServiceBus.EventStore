@@ -29,7 +29,7 @@ namespace NServiceBus
             {
                 return new OutboxMessage(messageId, new TransportOperation[0]);
             }
-            var outboxRecord = readResult.Events[0].Event.Data.ParseJson<OutboxRecordEvent>();
+            var outboxRecord = DeserializeOutboxRecord(readResult);
             var persistenceOps =
                 readResult.Events.Where(
                     e => e.Event.EventType != DispatchedEventType && e.Event.EventType != OutboxRecordEventType)
@@ -46,6 +46,12 @@ namespace NServiceBus
             return new OutboxMessage(messageId, outboxRecord.TransportOperations);
         }
 
+        static OutboxRecordEvent DeserializeOutboxRecord(StreamEventsSlice readResult)
+        {
+            var outboxRecord = readResult.Events[0].Event.Data.ParseJson<OutboxRecordEvent>();
+            return outboxRecord;
+        }
+
         public Task Store(OutboxMessage message, OutboxTransaction transaction, ContextBag context)
         {
             var typedTransaction = (EventStoreOutboxTransaction) transaction;
@@ -58,8 +64,11 @@ namespace NServiceBus
             var connection = GetTransportConnection(context);
             var streamName = GetStreamName(messageId);
 
-            var persistenceOps = context.Get<OutboxPersistenceOperation[]>(); //we know that it should be there because Get is guaranteed to be called before.
-
+            OutboxPersistenceOperation[] persistenceOps;
+            if (!context.TryGet(out persistenceOps))
+            {
+                return; //We can skip adding another dispatched event because if there is no persistence ops it means Get returned an alreadt dispatched outbox record.
+            }
             foreach (var op in persistenceOps)
             {
                 await connection.AppendToStreamAsync(op.DestinationStream, ExpectedVersion.Any, op.Event).ConfigureAwait(false);
