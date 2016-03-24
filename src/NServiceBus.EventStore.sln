@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore.Acce
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NServiceBus.EventStore.Tests", "NServiceBus.EventStore.Tests\NServiceBus.EventStore.Tests.csproj", "{2D905D67-4682-450C-8013-3C3EB94737CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTest", "PerformanceTest\PerformanceTest.csproj", "{AE675C2A-50FE-4AEC-8A09-7B33C4F8C23D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{2D905D67-4682-450C-8013-3C3EB94737CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2D905D67-4682-450C-8013-3C3EB94737CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2D905D67-4682-450C-8013-3C3EB94737CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE675C2A-50FE-4AEC-8A09-7B33C4F8C23D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE675C2A-50FE-4AEC-8A09-7B33C4F8C23D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE675C2A-50FE-4AEC-8A09-7B33C4F8C23D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE675C2A-50FE-4AEC-8A09-7B33C4F8C23D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

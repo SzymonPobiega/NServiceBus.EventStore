@@ -11,11 +11,13 @@ using NServiceBus.Transports;
 
 namespace NServiceBus
 {
-    class Dispatcher : IDispatchMessages
-    {        
+    class Dispatcher : IDispatchMessages, IDisposable
+    {
         public Dispatcher(IConnectionConfiguration connectionConfig, SubscriptionManager subscriptionManager, TimeoutProcessor timeoutProcessor)
         {
-            this.connectionConfig = connectionConfig;
+            connection = connectionConfig.CreateConnection("Dispatch");
+            connection.ConnectAsync().GetAwaiter().GetResult();
+
             this.subscriptionManager = subscriptionManager;
             this.timeoutProcessor = timeoutProcessor;
         }
@@ -25,16 +27,12 @@ namespace NServiceBus
             TransportTransaction transportTransaction;
             if (context.TryGet(out transportTransaction))
             {
-                var connection = transportTransaction.Get<IEventStoreConnection>();
-                await Dispatch(outgoingMessages, connection).ConfigureAwait(false);
+                var c = transportTransaction.Get<IEventStoreConnection>();
+                await Dispatch(outgoingMessages, c).ConfigureAwait(false);
             }
             else
             {
-                using (var connection = connectionConfig.CreateConnection("Dispatch"))
-                {
-                    await connection.ConnectAsync().ConfigureAwait(false);
-                    await Dispatch(outgoingMessages, connection).ConfigureAwait(false);
-                }
+                await Dispatch(outgoingMessages, connection).ConfigureAwait(false);
             }
         }
 
@@ -86,7 +84,7 @@ namespace NServiceBus
                 metadata.TimeToBeReceived = DateTime.UtcNow + timeToBeReceived.MaxTime;
             }
             metadata.MessageId = operation.Message.MessageId;
-            metadata.Headers = operation.Message.Headers;            
+            metadata.Headers = operation.Message.Headers;
             var type = operation.Message.Headers.ContainsKey(Headers.ControlMessageHeader)
                 ? "ControlMessage"
                 : operation.Message.Headers[Headers.EnclosedMessageTypes];
@@ -95,8 +93,8 @@ namespace NServiceBus
             string contentType;
             if (operation.Message.Headers.TryGetValue(Headers.ContentType, out contentType))
             {
-                data = contentType != ContentTypes.Json 
-                    ? Encoding.UTF8.GetBytes(Convert.ToBase64String(operation.Message.Body)) 
+                data = contentType != ContentTypes.Json
+                    ? Encoding.UTF8.GetBytes(Convert.ToBase64String(operation.Message.Body))
                     : operation.Message.Body;
             }
             else
@@ -107,8 +105,14 @@ namespace NServiceBus
             return new EventData(Guid.NewGuid(), type, true, data, metadata.ToJsonBytes());
         }
 
+        public void Dispose()
+        {
+            connection.EnsureClosed();
+        }
+
         SubscriptionManager subscriptionManager;
         TimeoutProcessor timeoutProcessor;
-        IConnectionConfiguration connectionConfig;
+        IEventStoreConnection connection;
+
     }
 }
