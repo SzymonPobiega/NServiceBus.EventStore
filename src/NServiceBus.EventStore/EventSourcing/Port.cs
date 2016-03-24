@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace NServiceBus.EventSourcing
 {
@@ -7,7 +8,7 @@ namespace NServiceBus.EventSourcing
     {
         protected Guid Id { get; private set; }
 
-        internal IEnumerable<OutgoingMessage> Process(Guid id, IEnumerable<object> comittedEvents, IEnumerable<object> uncomittedEvents)
+        internal IEnumerable<Func<IMessageHandlerContext, Task>> Process(Guid id, IEnumerable<object> comittedEvents, IEnumerable<object> uncomittedEvents)
         {
             Id = id;
             foreach (var @event in comittedEvents)
@@ -22,11 +23,24 @@ namespace NServiceBus.EventSourcing
             return sentMessages;
         }
 
-        protected void Send(object message, SendOptions sendOptions)
+        /// <summary>
+        /// Sends a message via NServiceBus.
+        /// </summary>
+        /// <param name="message">Message.</param>
+        /// <param name="sendOptions">Send options.</param>
+        protected void Send(object message, SendOptions sendOptions = null)
         {
             if (!reconstructing)
             {
-                sentMessages.Add(new OutgoingMessage(message, sendOptions));
+                sentMessages.Add(c => c.Send(message, sendOptions ?? new SendOptions()));
+            }
+        }
+
+        protected void Publish(object evnt, PublishOptions publishOptions = null)
+        {
+            if (!reconstructing)
+            {
+                sentMessages.Add(c => c.Publish(evnt, publishOptions ?? new PublishOptions()));
             }
         }
 
@@ -36,6 +50,6 @@ namespace NServiceBus.EventSourcing
         }
 
         bool reconstructing = true;
-        List<OutgoingMessage> sentMessages = new List<OutgoingMessage>();
+        List<Func<IMessageHandlerContext, Task>> sentMessages = new List<Func<IMessageHandlerContext, Task>>();
     }
 }

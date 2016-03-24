@@ -60,19 +60,19 @@ namespace NServiceBus.EventSourcing
         public async Task Store(T aggregate)
         {
             var events = aggregate.Dehydrate();
-            var outgoingMessages = aggregate.ProcessPorts().ToArray();
+            var sendAction = aggregate.ProcessPorts().ToArray();
             var eventData = events.Select(Serialize);
             var streamName = BuildStreamName(aggregate.Id);
 
-            if (outgoingMessages.Any())
+            if (sendAction.Any())
             {
                 //Use the lock & outbox
                 var lockEvent = new EventData(Guid.NewGuid(), LockEventType, true, new AggregateLockEvent(context.MessageId).ToJsonBytes(), new byte[0]);
                 await context.SynchronizedStorageSession.AppendToStreamAsync(streamName, aggregate.Version, lockEvent).ConfigureAwait(false);
 
-                foreach (var message in outgoingMessages)
+                foreach (var action in sendAction)
                 {
-                    await context.Send(message.Message, message.SendOptions).ConfigureAwait(false);
+                    await action(context).ConfigureAwait(false);
                 }
                 foreach (var e in eventData)
                 {

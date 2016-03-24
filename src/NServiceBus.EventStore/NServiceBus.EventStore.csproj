@@ -75,7 +75,6 @@
   <ItemGroup>
     <Compile Include="EventSourcing\Aggregate.cs" />
     <Compile Include="EventSourcing\AggregateLockEvent.cs" />
-    <Compile Include="EventSourcing\OutgoingMessage.cs" />
     <Compile Include="EventSourcing\Port.cs" />
     <Compile Include="EventSourcing\Repository.cs" />
     <Compile Include="Exchanges\Data\ExchangeDataCollection.cs" />

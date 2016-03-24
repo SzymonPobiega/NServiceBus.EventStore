@@ -8,7 +8,7 @@ namespace NServiceBus.AcceptanceTests.EventSourcing
     using NServiceBus.AcceptanceTests.EndpointTemplates;
     using NUnit.Framework;
 
-    public class When_sending_from_aggregate : NServiceBusAcceptanceTest
+    public class When_sending_from_an_aggregate : NServiceBusAcceptanceTest
     {
         [Test]
         public async Task Should_receive_the_message()
@@ -20,7 +20,6 @@ namespace NServiceBus.AcceptanceTests.EventSourcing
                     .Run();
 
             Assert.AreEqual(5, context.LastResponse);
-
         }
 
         public class Context : ScenarioContext

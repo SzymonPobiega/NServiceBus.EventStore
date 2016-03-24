@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web.Services.Description;
 
 namespace NServiceBus.EventSourcing
@@ -40,7 +41,7 @@ namespace NServiceBus.EventSourcing
             ((dynamic) this).Apply((dynamic) @event);
         }
 
-        internal IEnumerable<OutgoingMessage> ProcessPorts()
+        internal IEnumerable<Func<IMessageHandlerContext, Task>> ProcessPorts()
         {
             return ports.SelectMany(p => p.Process(Id, comittedEvents, uncomittedEvents));
         } 
