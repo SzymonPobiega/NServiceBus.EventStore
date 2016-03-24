@@ -86,6 +86,7 @@
     <Compile Include="Exchanges\Data\ExchangeData.cs" />
     <Compile Include="Persistence\EventStoreOutboxTransaction.cs" />
     <Compile Include="Persistence\EventStorePersistence.cs" />
+    <Compile Include="Persistence\EventStorePersistenceExtensions.cs" />
     <Compile Include="Persistence\OutboxEventStoreSynchronizedStorageSession.cs" />
     <Compile Include="Persistence\OutboxPersister.cs" />
     <Compile Include="Persistence\OutboxPersistenceOperation.cs" />

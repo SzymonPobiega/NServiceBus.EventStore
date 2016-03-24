@@ -10,14 +10,25 @@ using TransportOperation = NServiceBus.Outbox.TransportOperation;
 
 namespace NServiceBus
 {
-    class OutboxPersister : IOutboxStorage
+    class OutboxPersister : IOutboxStorage, IDisposable
     {
         public const string DispatchedEventType = "$dispatched";
         public const string OutboxRecordEventType = "$outbox-record";
+        IEventStoreConnection outboxConnection;
+
+        public OutboxPersister(IConnectionConfiguration config)
+        {
+            if (config == null)
+            {
+                return;
+            }
+            outboxConnection = config.CreateConnection("Outbox");
+            outboxConnection.ConnectAsync().GetAwaiter().GetResult();
+        }
 
         public async Task<OutboxMessage> Get(string messageId, ContextBag context)
         {
-            var connection = GetTransportConnection(context);
+            var connection = GetConnection(context);
             var streamName = GetStreamName(messageId);
 
             var readResult = await connection.ReadStreamEventsForwardAsync(streamName, 0, 4096, false);
@@ -62,7 +73,7 @@ namespace NServiceBus
 
         public async Task SetAsDispatched(string messageId, ContextBag context)
         {
-            var connection = GetTransportConnection(context);
+            var connection = GetConnection(context);
             var streamName = GetStreamName(messageId);
 
             OutboxPersistenceOperation[] persistenceOps;
@@ -85,19 +96,28 @@ namespace NServiceBus
 
         public Task<OutboxTransaction> BeginTransaction(ContextBag context)
         {
-            var connection = GetTransportConnection(context);
+            var connection = GetConnection(context);
             return Task.FromResult<OutboxTransaction>(new EventStoreOutboxTransaction(connection));
         }
 
-        static IEventStoreConnection GetTransportConnection(ContextBag context)
+        IEventStoreConnection GetConnection(ContextBag context)
         {
+            if (outboxConnection != null)
+            {
+                return outboxConnection;
+            }
             var transportTransaction = context.Get<TransportTransaction>();
             IEventStoreConnection connection;
             if (!transportTransaction.TryGet(out connection))
             {
-                throw new Exception("EventStore persistence can only be used with EventStore transport.");
+                throw new Exception("EventStore persistence can only be used either with EventStore transport or requires explicitly.");
             }
             return connection;
+        }
+
+        public void Dispose()
+        {
+            outboxConnection?.Dispose();
         }
     }
 }
