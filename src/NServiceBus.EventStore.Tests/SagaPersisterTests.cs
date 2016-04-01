@@ -46,7 +46,6 @@ namespace NServiceBus.EventStore.Tests
             var secondMessageId = Guid.NewGuid().ToString();
             var correlationProperty = Guid.NewGuid().ToString("N");
             var outgoingMessages = new List<Guid>();
-
             await ProcessMessage(firstMessageId, null, correlationProperty, 2, outgoingMessages).ConfigureAwait(false);
             try
             {
@@ -55,8 +54,9 @@ namespace NServiceBus.EventStore.Tests
             }
             catch (Exception)
             {
-                Assert.Pass();
+                //Intentional
             }
+            Assert.AreEqual(1, outgoingMessages.Distinct().Count());
         }
 
         [Test]

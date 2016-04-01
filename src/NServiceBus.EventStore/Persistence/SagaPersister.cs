@@ -1,6 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Exceptions;
