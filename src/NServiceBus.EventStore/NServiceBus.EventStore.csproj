@@ -93,6 +93,8 @@
     <Compile Include="Persistence\OutboxPersisterFeature.cs" />
     <Compile Include="Persistence\OutboxRecordEvent.cs" />
     <Compile Include="Persistence\SagaDataLockEvent.cs" />
+    <Compile Include="Persistence\SagaIndexEntry.cs" />
+    <Compile Include="Persistence\SagaMarkerEvent.cs" />
     <Compile Include="Persistence\SagaPersister.cs" />
     <Compile Include="Persistence\SagaPersisterFeature.cs" />
     <Compile Include="Persistence\SynchronizedStorage.cs" />

@@ -21,7 +21,7 @@ namespace NServiceBus
                 throw new ArgumentNullException(nameof(connectionString));
             }
             var config = new ConnectionStringParser().Parse(connectionString);
-            persistence.GetSettings().Set(SynchronizedStorageFeature.ConnectionConfigurationSettingsKey, config);
+            persistence.GetSettings().Set(OutboxPersisterFeature.ConnectionConfigurationSettingsKey, config);
             return persistence;
         }
 
@@ -36,7 +36,7 @@ namespace NServiceBus
             {
                 throw new ArgumentNullException(nameof(persistence));
             }
-            persistence.GetSettings().Set(SynchronizedStorageFeature.ConnectionConfigurationSettingsKey, connectionConfiguration);
+            persistence.GetSettings().Set(OutboxPersisterFeature.ConnectionConfigurationSettingsKey, connectionConfiguration);
             return persistence;
         }
     }
