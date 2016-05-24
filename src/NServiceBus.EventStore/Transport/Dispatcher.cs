@@ -107,7 +107,7 @@ namespace NServiceBus
 
         public void Dispose()
         {
-            connection.EnsureClosed();
+            connection.EnsureClosed().GetAwaiter().GetResult();
         }
 
         SubscriptionManager subscriptionManager;

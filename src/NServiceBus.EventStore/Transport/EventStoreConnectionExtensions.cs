@@ -1,22 +1,24 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using EventStore.ClientAPI;
 
 namespace NServiceBus
 {
     static class EventStoreConnectionExtensions
     {
-        public static void EnsureClosed(this IEventStoreConnection connection, TimeSpan? timeout = null)
+        public static async Task EnsureClosed(this IEventStoreConnection connection, TimeSpan? timeout = null)
         {
-            var closeEvent = new ManualResetEventSlim(false);
+            var closeEvent = new TaskCompletionSource<bool>();
             connection.Closed += (sender, args) =>
             {
-                closeEvent.Set();
+                closeEvent.SetResult(true);
             };
             connection.Close();
-            if (!closeEvent.Wait(timeout ?? TimeSpan.FromSeconds(1)))
+
+            if (await Task.WhenAny(closeEvent.Task, Task.Delay(1000)) != closeEvent.Task)
             {
-                Console.WriteLine("Failed to close connection  {0}", connection.ConnectionName);
+                Console.WriteLine("Failed to close connection {0}", connection.ConnectionName);
             }
         }
     }

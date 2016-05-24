@@ -38,10 +38,10 @@ namespace NServiceBus
             cachedExchangeCollection = new ExchangeCollection(newData);
         }
 
-        public void Stop()
+        public Task Stop()
         {
             monitor.StopMonitoring();
-            monitorConnection.EnsureClosed();
+            return monitorConnection.EnsureClosed();
         }
 
         public async Task UpdateExchanges(Action<ExchangeDataCollection> updateAction)

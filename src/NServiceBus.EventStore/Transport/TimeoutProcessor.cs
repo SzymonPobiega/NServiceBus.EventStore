@@ -47,7 +47,7 @@ namespace NServiceBus
                     //await circuitBreaker.Failure(ex).ConfigureAwait(false);
                 }
             }
-            connection.EnsureClosed();
+            await connection.EnsureClosed().ConfigureAwait(false);
         }
 
         async Task InnerPoll(CancellationToken cancellationToken)

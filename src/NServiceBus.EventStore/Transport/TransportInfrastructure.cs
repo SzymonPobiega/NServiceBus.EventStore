@@ -11,7 +11,7 @@ using NServiceBus.Transports;
 
 namespace NServiceBus
 {
-    class TransportInfrastructure : Transports.TransportInfrastructure, IDisposable
+    class TransportInfrastructure : Transports.TransportInfrastructure
     {
         bool started;
         bool stopped;
@@ -62,7 +62,7 @@ namespace NServiceBus
                 return;
             }
             await timeoutProcessor.Value.Stop().ConfigureAwait(false);
-            subscriptionManager.Value.Stop();
+            await subscriptionManager.Value.Stop();
             stopped = true;
         }
 
@@ -110,13 +110,5 @@ namespace NServiceBus
         public override TransportTransactionMode TransactionMode => TransportTransactionMode.ReceiveOnly;
 
         public override OutboundRoutingPolicy OutboundRoutingPolicy => new OutboundRoutingPolicy(OutboundRoutingType.Unicast, OutboundRoutingType.Multicast, OutboundRoutingType.Unicast);
-        
-        public void Dispose()
-        {
-            if (subscriptionManager.IsValueCreated)
-            {
-                subscriptionManager.Value.Stop();
-            }
-        }
     }
 }

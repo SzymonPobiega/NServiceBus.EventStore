@@ -47,6 +47,8 @@ public class ConfigureEndpointEventStoreTransport : IConfigureEndpointTestExecut
         }
 
         await connection.DeleteStreamAsync("nsb-exchanges", ExpectedVersion.Any, false).ConfigureAwait(false);
+
+        connection.Close();
     }
 
     QueueBindings queueBindings;

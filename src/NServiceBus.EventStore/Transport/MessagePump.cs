@@ -163,7 +163,7 @@ namespace NServiceBus
             {
                 Logger.Error("The message pump failed to stop with in the time allowed(30s)");
             }
-            connection.EnsureClosed();
+            await connection.EnsureClosed().ConfigureAwait(false);
             concurrencyLimiter.Dispose();
             runningReceiveTasks.Clear();
         }

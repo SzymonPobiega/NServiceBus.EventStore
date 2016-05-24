@@ -27,9 +27,9 @@ namespace NServiceBus
             return exchangeManager.Start(criticalError);
         }
 
-        public void Stop()
+        public Task Stop()
         {
-            exchangeManager.Stop();
+            return exchangeManager.Stop();
         }
 
         public async Task<IEnumerable<string>> GetDestinationQueues(Type messageType)
