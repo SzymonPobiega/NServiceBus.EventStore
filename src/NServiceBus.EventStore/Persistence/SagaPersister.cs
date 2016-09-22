@@ -24,7 +24,10 @@ namespace NServiceBus
             var operations = new SagaPersisterAtomicOperations(session);
 
             var streamName = BuildSagaStreamName(sagaData.GetType(), sagaData.Id);
-            return SaveWithIndex(sagaData, correlationProperty, operations, streamName);
+
+            return correlationProperty != null
+                ? SaveWithIndex(sagaData, correlationProperty, operations, streamName)
+                : SaveWithoutIndex(sagaData, operations, session, streamName, context.Get<IncomingMessage>().MessageId);
         }
 
         static async Task SaveWithIndex(IContainSagaData sagaData, SagaCorrelationProperty correlationProperty, SagaPersisterAtomicOperations operations, string streamName)
@@ -37,7 +40,12 @@ namespace NServiceBus
             await operations.SaveSagaDataLink(streamName, linkEvent).ConfigureAwait(false);
             await operations.DeleteMarker(sagaData).ConfigureAwait(false);
         }
-        
+
+        static Task SaveWithoutIndex(IContainSagaData sagaData, SagaPersisterAtomicOperations operations, SynchronizedStorageSession session, string streamName, string messageId)
+        {
+            return SaveSagaData(sagaData, session, operations, messageId, streamName, new SagaVersion(ExpectedVersion.NoStream, true));
+        }
+
         static async Task<EventData> CreateIndex(IContainSagaData saga, string indexStream, SagaPersisterAtomicOperations operations)
         {
             try

@@ -66,11 +66,26 @@ namespace NServiceBus
 
         public async Task Defer(EventData eventData, DateTime dueTime, IEventStoreConnection dispatchConnection)
         {
+            var currentEpoch = ToEpoch(dueTime < DateTime.UtcNow ? DateTime.UtcNow : dueTime);
             if (!storeInitialized)
             {
-                var readResult = await dispatchConnection.ReadStreamEventsBackwardAsync(TimeoutProcessorStateStream, -1, 1, true).ConfigureAwait(false);
+                var attempts = 0;
+                StreamEventsSlice readResult;
+                do
+                {
+                    readResult = await dispatchConnection.ReadStreamEventsForwardAsync(TimeoutProcessorStateStream, 0, 1, true).ConfigureAwait(false);
+                    attempts++;
+                    if (readResult.Status != SliceReadStatus.Success)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(attempts));
+                    }
+                } while(readResult.Status != SliceReadStatus.Success && attempts < 5);
                 if (readResult.Status == SliceReadStatus.Success)
                 {
+                    var e = readResult.Events[0].Event.Data.ParseJson<TimeoutProcessorStateEvent>();
+                    currentEpoch = currentEpoch < e.LastProcessedEpoch
+                        ? e.LastProcessedEpoch
+                        : currentEpoch;
                     storeInitialized = true;
                 }
                 else
@@ -78,7 +93,6 @@ namespace NServiceBus
                     throw new Exception("Timeout store has not been initialized. No timeout processor has even been running against this store.");
                 }
             }
-            var currentEpoch = ToEpoch(dueTime);
             while (true)
             {
                 var currentEpochStream = "nsb-timeouts-" + currentEpoch;

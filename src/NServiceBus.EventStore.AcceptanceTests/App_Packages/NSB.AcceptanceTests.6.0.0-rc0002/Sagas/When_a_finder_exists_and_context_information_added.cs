@@ -19,7 +19,7 @@ namespace NServiceBus.AcceptanceTests.Sagas
         public async Task Should_make_context_information_available()
         {
             var context = await Scenario.Define<Context>()
-                .WithEndpoint<SagaEndpoint>(b => b.When(session => session.SendLocal(new StartSagaMessage())))
+                .WithEndpoint<SagaEndpoint>(b => b.When(c => c.EndpointsStarted, session => session.SendLocal(new StartSagaMessage())))
                 .Done(c => c.FinderUsed)
                 .Run();
 
