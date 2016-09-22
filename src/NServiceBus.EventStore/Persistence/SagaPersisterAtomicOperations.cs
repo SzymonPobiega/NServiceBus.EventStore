@@ -99,7 +99,7 @@ namespace NServiceBus
                 stateEventIndex = 1;
             }
             var saga = readResult.Events[stateEventIndex].Event.Data.ParseJson<TSagaData>();
-            var versionInfo = new SagaVersion(lastEvent.EventNumber, alreadyLocked);
+            var versionInfo = new SagaVersion(readResult.Events[0].OriginalEventNumber, alreadyLocked);
             session.StoreSagaVersion(sagaId, versionInfo);
             return saga;
         }

@@ -7,7 +7,7 @@ using NServiceBus.DelayedDelivery;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Performance.TimeToBeReceived;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 
 namespace NServiceBus
 {
@@ -15,24 +15,23 @@ namespace NServiceBus
     {
         public Dispatcher(IConnectionConfiguration connectionConfig, SubscriptionManager subscriptionManager, TimeoutProcessor timeoutProcessor)
         {
-            connection = connectionConfig.CreateConnection("Dispatch");
-            connection.ConnectAsync().GetAwaiter().GetResult();
+            sharedConnection = connectionConfig.CreateConnection("Dispatch");
+            sharedConnection.ConnectAsync().GetAwaiter().GetResult();
 
             this.subscriptionManager = subscriptionManager;
             this.timeoutProcessor = timeoutProcessor;
         }
 
-        public async Task Dispatch(TransportOperations outgoingMessages, ContextBag context)
+        public async Task Dispatch(TransportOperations outgoingMessages, TransportTransaction transportTransaction, ContextBag context)
         {
-            TransportTransaction transportTransaction;
-            if (context.TryGet(out transportTransaction))
+            IEventStoreConnection c;
+            if (transportTransaction.TryGet(out c))
             {
-                var c = transportTransaction.Get<IEventStoreConnection>();
                 await Dispatch(outgoingMessages, c).ConfigureAwait(false);
             }
             else
             {
-                await Dispatch(outgoingMessages, connection).ConfigureAwait(false);
+                await Dispatch(outgoingMessages, sharedConnection).ConfigureAwait(false);
             }
         }
 
@@ -107,12 +106,12 @@ namespace NServiceBus
 
         public void Dispose()
         {
-            connection.EnsureClosed().GetAwaiter().GetResult();
+            sharedConnection.EnsureClosed().GetAwaiter().GetResult();
         }
 
         SubscriptionManager subscriptionManager;
         TimeoutProcessor timeoutProcessor;
-        IEventStoreConnection connection;
+        IEventStoreConnection sharedConnection;
 
     }
 }

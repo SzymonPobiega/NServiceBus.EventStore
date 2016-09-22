@@ -1,6 +1,5 @@
-﻿using NServiceBus.Features;
-using NServiceBus.Settings;
-using NServiceBus.Transports;
+﻿using NServiceBus.Settings;
+using NServiceBus.Transport;
 
 namespace NServiceBus
 {
@@ -9,7 +8,7 @@ namespace NServiceBus
     /// </summary>
     public class EventStoreTransport : TransportDefinition
     {
-        protected override Transports.TransportInfrastructure Initialize(SettingsHolder settings, string connectionString)
+        public override Transport.TransportInfrastructure Initialize(SettingsHolder settings, string connectionString)
         {
             return new TransportInfrastructure(settings, connectionString);
         }

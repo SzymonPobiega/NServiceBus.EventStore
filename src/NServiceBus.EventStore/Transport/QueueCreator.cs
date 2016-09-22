@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using NServiceBus.Internal;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 
 namespace NServiceBus
 {

@@ -8,7 +8,7 @@ using NServiceBus.Logging;
 using NServiceBus.Persistence;
 using NServiceBus.Persistence.EventStore.SagaPersister;
 using NServiceBus.Sagas;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 
 namespace NServiceBus
 {
@@ -24,28 +24,20 @@ namespace NServiceBus
             var operations = new SagaPersisterAtomicOperations(session);
 
             var streamName = BuildSagaStreamName(sagaData.GetType(), sagaData.Id);
-            return correlationProperty != null
-                ? SaveWithIndex(sagaData, correlationProperty, operations, streamName)
-                : SaveWithoutIndex(sagaData, operations, session, streamName, context.Get<IncomingMessage>().MessageId);
+            return SaveWithIndex(sagaData, correlationProperty, operations, streamName);
         }
 
         static async Task SaveWithIndex(IContainSagaData sagaData, SagaCorrelationProperty correlationProperty, SagaPersisterAtomicOperations operations, string streamName)
         {
-            var propertyName = correlationProperty.Name;
             var propertyValue = correlationProperty.Value;
-            var indexStream = BuildIndexStreamName(sagaData.GetType(), propertyName, propertyValue);
+            var indexStream = BuildIndexStreamName(sagaData.GetType(), propertyValue);
 
             await operations.CreateMarker(indexStream, sagaData).ConfigureAwait(false);
             var linkEvent = await CreateIndex(sagaData, indexStream, operations).ConfigureAwait(false);
             await operations.SaveSagaDataLink(streamName, linkEvent).ConfigureAwait(false);
             await operations.DeleteMarker(sagaData).ConfigureAwait(false);
         }
-
-        static Task SaveWithoutIndex(IContainSagaData sagaData, SagaPersisterAtomicOperations operations, SynchronizedStorageSession session, string streamName, string messageId)
-        {
-            return SaveSagaData(sagaData, session, operations, messageId, streamName, new SagaVersion(ExpectedVersion.NoStream, true));
-        }
-
+        
         static async Task<EventData> CreateIndex(IContainSagaData saga, string indexStream, SagaPersisterAtomicOperations operations)
         {
             try
@@ -129,7 +121,7 @@ namespace NServiceBus
         public async Task<TSagaData> Get<TSagaData>(string propertyName, object propertyValue, SynchronizedStorageSession session, ContextBag context) where TSagaData : IContainSagaData
         {
             var operations = new SagaPersisterAtomicOperations(session);
-            var index = await operations.ReadIndex(BuildIndexStreamName(typeof(TSagaData), propertyName, propertyValue)).ConfigureAwait(false);
+            var index = await operations.ReadIndex(BuildIndexStreamName(typeof(TSagaData), propertyValue)).ConfigureAwait(false);
             if (index == null)
             {
                 return default(TSagaData);
@@ -155,9 +147,9 @@ namespace NServiceBus
             return sagaData;
         }
 
-        static string BuildIndexStreamName(Type sagaType, string property, object value)
+        static string BuildIndexStreamName(Type sagaType, object value)
         {
-            return "nsb-saga-index-" + BuildSagaTypeName(sagaType) + "-by-" + property.ToLowerInvariant() + "#" + FormatValue(value);
+            return "nsb-saga-index-" + BuildSagaTypeName(sagaType) + "-" + FormatValue(value);
         }
 
         static string FormatValue(object value)
@@ -165,10 +157,14 @@ namespace NServiceBus
             return value.ToString();
         }
 
-        public Task Complete(IContainSagaData sagaData, SynchronizedStorageSession session, ContextBag context)
+        public async Task Complete(IContainSagaData sagaData, SynchronizedStorageSession session, ContextBag context)
         {
             var streamName = BuildSagaStreamName(sagaData.GetType(), sagaData.Id);
-            return session.DeleteStreamAsync(streamName, ExpectedVersion.Any, true);
+            var indexLinkEvent = await session.ReadStreamEventsForwardAsync(streamName, 0, 1, false).ConfigureAwait(false);
+            var indexEntry = Json.UTF8NoBom.GetString(indexLinkEvent.Events[0].Event.Data);
+            var indexStream = indexEntry.Split('@')[1];
+            await session.DeleteStreamAsync(streamName, ExpectedVersion.Any, true).ConfigureAwait(false);
+            await session.DeleteStreamAsync(indexStream, ExpectedVersion.Any, true).ConfigureAwait(false);
         }
 
         static string BuildSagaStreamName(Type sagaType, Guid sagaId)

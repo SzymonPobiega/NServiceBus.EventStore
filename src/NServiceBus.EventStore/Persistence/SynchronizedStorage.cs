@@ -4,7 +4,7 @@ using EventStore.ClientAPI;
 using NServiceBus.Extensibility;
 using NServiceBus.Outbox;
 using NServiceBus.Persistence;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 
 namespace NServiceBus
 {

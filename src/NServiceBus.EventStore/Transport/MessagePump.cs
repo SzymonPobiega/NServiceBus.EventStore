@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,7 +9,7 @@ using EventStore.ClientAPI;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 
 namespace NServiceBus
 {
@@ -23,9 +23,10 @@ namespace NServiceBus
             this.connection = connectionConfiguration.CreateConnection("MessagePump");
         }
 
-        public async Task Init(Func<PushContext, Task> pipe, CriticalError criticalError, PushSettings settings)
+        public async Task Init(Func<MessageContext, Task> onMessage, Func<ErrorContext, Task<ErrorHandleResult>> onError, CriticalError criticalError, PushSettings settings)
         {
-            pipeline = pipe;
+            pipeline = onMessage;
+            this.onError = onError;
             inputQueue = settings.InputQueue;
             receiveCircuitBreaker = new RepeatedFailuresOverTimeCircuitBreaker("EventStoreReceive", TimeSpan.FromSeconds(30), ex => criticalError.Raise("Failed to receive from " + settings.InputQueue, ex));
             this.criticalError = criticalError;
@@ -70,7 +71,7 @@ namespace NServiceBus
             concurrencyLimiter.Wait(cancellationToken);
             
             var tokenSource = new CancellationTokenSource();
-            var pushContext = ToPushContext(evnt, tokenSource);
+            var pushContext = ToMessageContext(evnt, tokenSource);
             if (pushContext == null) //system message
             {
                 return;
@@ -80,15 +81,7 @@ namespace NServiceBus
 
                 try
                 {
-                    pipeline(pushContext).GetAwaiter().GetResult();
-                    if (tokenSource.IsCancellationRequested)
-                    {
-                        s.Fail(evnt, PersistentSubscriptionNakEventAction.Retry, "User requested");
-                    }
-                    else
-                    {
-                        s.Acknowledge(evnt);
-                    }
+                    ExecutePipeline(s, evnt, pushContext, tokenSource).GetAwaiter().GetResult();
                     receiveCircuitBreaker.Success();
                 }
                 catch (Exception ex)
@@ -119,7 +112,51 @@ namespace NServiceBus
             }, TaskContinuationOptions.ExecuteSynchronously);
         }
 
-        PushContext ToPushContext(ResolvedEvent evnt, CancellationTokenSource tokenSource)
+        async Task ExecutePipeline(EventStorePersistentSubscriptionBase s, ResolvedEvent evnt, MessageContext pushContext, CancellationTokenSource tokenSource)
+        {
+            var errorHandleResult = ErrorHandleResult.RetryRequired;
+            var failures = 0;
+            while (errorHandleResult != ErrorHandleResult.Handled)
+            {
+                try
+                {
+                    await pipeline(pushContext);
+                    errorHandleResult = ErrorHandleResult.Handled;
+                }
+                catch (Exception ex)
+                {
+                    failures++;
+                    errorHandleResult = await onError(ToErrorContext(evnt, ex, pushContext.TransportTransaction, failures));
+                }
+            }
+            if (tokenSource.IsCancellationRequested)
+            {
+                s.Fail(evnt, PersistentSubscriptionNakEventAction.Retry, "User requested");
+            }
+            else
+            {
+                s.Acknowledge(evnt);
+            }
+        }
+
+        static ErrorContext ToErrorContext(ResolvedEvent evnt, Exception ex, TransportTransaction transportTransaction, int failures)
+        {
+            var metadata = evnt.Event.Metadata.ParseJson<MessageMetadata>();
+            var headers = new Dictionary<string, string>(metadata.Headers);
+            var data = metadata.Empty //because EventStore inserts {}
+                ? new byte[0]
+                : evnt.Event.Data;
+            string contentType;
+            if (headers.TryGetValue(Headers.ContentType, out contentType))
+            {
+                data = contentType != ContentTypes.Json
+                    ? Convert.FromBase64String(Encoding.UTF8.GetString(data))
+                    : data;
+            }
+            return new ErrorContext(ex, headers, metadata.MessageId, data, transportTransaction, failures);
+        }
+
+        MessageContext ToMessageContext(ResolvedEvent evnt, CancellationTokenSource tokenSource)
         {
             if (evnt.Event.EventType.StartsWith("$"))
             {
@@ -130,7 +167,7 @@ namespace NServiceBus
             {
                 return null;
             }
-            var headers = metadata.Headers;
+            var headers = new Dictionary<string, string>(metadata.Headers);
             var transportTransaction = new TransportTransaction();
             transportTransaction.Set(connection);
             var data = metadata.Empty //because EventStore inserts {}
@@ -143,7 +180,7 @@ namespace NServiceBus
                     ? Convert.FromBase64String(Encoding.UTF8.GetString(data))
                     : data;
             }
-            var context = new PushContext(metadata.MessageId, headers, new MemoryStream(data), transportTransaction, tokenSource, new ContextBag());
+            var context = new MessageContext(metadata.MessageId, headers, data, transportTransaction, tokenSource, new ContextBag());
             return context;
         }
 
@@ -168,6 +205,7 @@ namespace NServiceBus
             runningReceiveTasks.Clear();
         }
 
+        Func<ErrorContext, Task<ErrorHandleResult>> onError;
         Func<CriticalError, Task> onStart;
         Func<Task> onStop;
         IEventStoreConnection connection;
@@ -180,7 +218,7 @@ namespace NServiceBus
 
         string inputQueue;
         EventStorePersistentSubscriptionBase subscription;
-        Func<PushContext, Task> pipeline;
+        Func<MessageContext, Task> pipeline;
 
         static ILog Logger = LogManager.GetLogger<MessagePump>();
     }

@@ -14,7 +14,7 @@ namespace NServiceBus
         /// </summary>
         /// <param name="persistence">Persistence extensions.</param>
         /// <param name="connectionString">Connection string.</param>
-        public static PersistenceExtentions<EventStorePersistence> ConnectionString(this PersistenceExtentions<EventStorePersistence> persistence, string connectionString)
+        public static PersistenceExtensions<EventStorePersistence> ConnectionString(this PersistenceExtensions<EventStorePersistence> persistence, string connectionString)
         {
             if (connectionString == null)
             {
@@ -30,7 +30,7 @@ namespace NServiceBus
         /// </summary>
         /// <param name="persistence">Persistence extensions.</param>
         /// <param name="connectionConfiguration">Connection configuration.</param>
-        public static PersistenceExtentions<EventStorePersistence> ConnectionConfiguration(this PersistenceExtentions<EventStorePersistence> persistence, ConnectionConfiguration connectionConfiguration)
+        public static PersistenceExtensions<EventStorePersistence> ConnectionConfiguration(this PersistenceExtensions<EventStorePersistence> persistence, ConnectionConfiguration connectionConfiguration)
         {
             if (persistence == null)
             {

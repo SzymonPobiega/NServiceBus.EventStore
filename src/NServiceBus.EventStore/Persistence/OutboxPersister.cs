@@ -5,7 +5,7 @@ using EventStore.ClientAPI;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Outbox;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 using TransportOperation = NServiceBus.Outbox.TransportOperation;
 
 namespace NServiceBus

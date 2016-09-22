@@ -7,11 +7,11 @@ using NServiceBus.Internal;
 using NServiceBus.Performance.TimeToBeReceived;
 using NServiceBus.Routing;
 using NServiceBus.Settings;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 
 namespace NServiceBus
 {
-    class TransportInfrastructure : Transports.TransportInfrastructure
+    class TransportInfrastructure : Transport.TransportInfrastructure
     {
         bool started;
         bool stopped;
@@ -55,7 +55,7 @@ namespace NServiceBus
             started = true;
         }
 
-        async Task Stop()
+        new async Task Stop()
         {
             if (stopped)
             {

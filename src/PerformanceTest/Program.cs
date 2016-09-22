@@ -16,7 +16,7 @@ namespace PerformanceTest
 
         static void Main(string[] args)
         {
-            var endpointConfig = new EndpointConfiguration();
+            var endpointConfig = new EndpointConfiguration("X");
             endpointConfig.UseTransport<EventStoreTransport>().ConnectionString("singleNode=127.0.0.1;user=admin;password=changeit");
             endpointConfig.UsePersistence<EventStorePersistence>();
             endpointConfig.SendFailedMessagesTo("error");
