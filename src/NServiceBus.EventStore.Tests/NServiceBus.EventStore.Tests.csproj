@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="AggregateTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SagaPersisterTests.cs" />
     <Compile Include="SagaPersisterWithOutboxTests.cs" />
   </ItemGroup>
   <ItemGroup>
