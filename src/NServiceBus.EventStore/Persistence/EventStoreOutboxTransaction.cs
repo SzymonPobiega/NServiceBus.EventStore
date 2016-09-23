@@ -12,10 +12,11 @@ namespace NServiceBus
     {
         public IEventStoreConnection Connection { get; }
 
-        public EventStoreOutboxTransaction(string outboxStream, IEventStoreConnection connection)
+        public EventStoreOutboxTransaction(string outboxStream, string messageId, IEventStoreConnection connection)
         {
             this.Connection = connection;
             this.outboxStream = outboxStream;
+            this.messageId = messageId;
         }
 
         public void Dispose()
@@ -42,7 +43,11 @@ namespace NServiceBus
             persistenceOperations.Add(new OutboxPersistenceOperation(destinationStream, eventData));
             var index = persistenceOperations.Count;
             var link = Json.UTF8NoBom.GetBytes($"{index}@{outboxStream}");
-            return new EventData(Guid.NewGuid(), "$>", false, link, new byte[0]);
+            var linkMetadata = new LinkEvent()
+            {
+                MessageId = messageId
+            };
+            return new EventData(Guid.NewGuid(), "$>", false, link, linkMetadata.ToJsonBytes());
         }
 
         public void Persist(OutboxMessage outboxMessage)
@@ -51,6 +56,7 @@ namespace NServiceBus
         }
 
         string outboxStream;
+        string messageId;
         List<OutboxPersistenceOperation> persistenceOperations = new List<OutboxPersistenceOperation>();
         TransportOperation[] transportOperations;
     }

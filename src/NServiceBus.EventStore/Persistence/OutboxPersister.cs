@@ -75,7 +75,7 @@ namespace NServiceBus
         {
             var connection = GetConnection(context);
             var messageId = context.Get<IncomingMessage>().MessageId;
-            return Task.FromResult<OutboxTransaction>(new EventStoreOutboxTransaction(GetStreamName(messageId), connection));
+            return Task.FromResult<OutboxTransaction>(new EventStoreOutboxTransaction(GetStreamName(messageId), messageId, connection));
         }
 
         IEventStoreConnection GetConnection(ContextBag context)

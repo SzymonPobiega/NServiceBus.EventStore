@@ -1,8 +1,8 @@
 using System;
 
-namespace NServiceBus.Persistence.EventStore.SagaPersister
+namespace NServiceBus
 {
-    public class SagaIndexEvent
+    class SagaIndexEvent
     {
         public string DataStreamName { get; set; }
 

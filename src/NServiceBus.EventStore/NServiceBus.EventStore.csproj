@@ -86,13 +86,12 @@
     <Compile Include="Persistence\EventStoreOutboxTransaction.cs" />
     <Compile Include="Persistence\EventStorePersistence.cs" />
     <Compile Include="Persistence\EventStorePersistenceExtensions.cs" />
+    <Compile Include="Persistence\LinkEvent.cs" />
     <Compile Include="Persistence\OutboxEventStoreSynchronizedStorageSession.cs" />
     <Compile Include="Persistence\OutboxPersister.cs" />
     <Compile Include="Persistence\OutboxPersistenceOperation.cs" />
     <Compile Include="Persistence\OutboxPersisterFeature.cs" />
     <Compile Include="Persistence\OutboxRecordEvent.cs" />
-    <Compile Include="Persistence\SagaDataLockEvent.cs" />
-    <Compile Include="Persistence\SagaIndexEntry.cs" />
     <Compile Include="Persistence\SagaMarkerEvent.cs" />
     <Compile Include="Persistence\SagaPersister.cs" />
     <Compile Include="Persistence\SagaPersisterAtomicOperations.cs" />

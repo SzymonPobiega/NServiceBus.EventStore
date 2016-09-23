@@ -11,7 +11,7 @@ using NUnit.Framework;
 namespace NServiceBus.EventStore.Tests
 {
     [TestFixture]
-    public class SagaPersisterTests
+    public class SagaPersisterWithOutboxTests
     {
         IEventStoreConnection connection;
         SagaPersister persister;
@@ -120,13 +120,13 @@ namespace NServiceBus.EventStore.Tests
             await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), new EventStoreSynchronizedStorageSession(connection), CreateMessageContext());
 
             //Process first message
-            await SimulateProcessingMessage(sagaData, d => { d.Value = 2; }, true);
+            await SimulateProcessingMessage(sagaData, d => { d.Value = 2; }, true, CreateMessageContext());
 
             //Verify state
             await SimulateProcessingMessage(sagaData, d =>
             {
                 Assert.AreEqual(2, d.Value);
-            }, true);
+            }, true, CreateMessageContext());
         }
 
         [Test]
@@ -136,25 +136,28 @@ namespace NServiceBus.EventStore.Tests
             await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), new EventStoreSynchronizedStorageSession(connection), CreateMessageContext());
 
             //Fail first message
-            await SimulateProcessingMessage(sagaData, d => { d.Value = 2; }, false);
+            var failingMessageContext = CreateMessageContext();
+            await SimulateProcessingMessage(sagaData, d => { d.Value = 2; }, false, failingMessageContext);
 
             try
             {
                 await SimulateProcessingMessage(sagaData, d =>
                 {
                     Assert.AreEqual(1, d.Value);
-                }, true);
+                }, true, CreateMessageContext());
                 Assert.Fail("Expected exception");
             }
             catch (Exception ex)
             {
                 Assert.AreEqual(ex.Message, "A previous message destined for this saga has failed. Triggering retries.");
             }
+
+            //Process the first message correctly for the second time.
+            await SimulateProcessingMessage(sagaData, d => { d.Value = 2; }, true, failingMessageContext);
         }
 
-        async Task SimulateProcessingMessage(SagaData sagaData, Action<SagaData> action, bool commitOutboxTransaction)
+        async Task SimulateProcessingMessage(SagaData sagaData, Action<SagaData> action, bool commitOutboxTransaction, ContextBag context)
         {
-            var context = CreateMessageContext();
             var outboxTransaction = await outboxPersister.BeginTransaction(context);
             var session = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)outboxTransaction);
             sagaData = await persister.Get<SagaData>(CorrelationPropName, sagaData.StringProperty, session, context);

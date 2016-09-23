@@ -65,6 +65,8 @@ namespace NServiceBus
         public async Task<TSagaData> Get<TSagaData>(Guid sagaId, SynchronizedStorageSession session, ContextBag context) where TSagaData : IContainSagaData
         {
             var operations = new SagaPersisterAtomicOperations(session);
+            var incomingMessage = context.Get<IncomingMessage>();
+            var messageId = incomingMessage.MessageId;
             var indexStream = BuildSagaByIdStreamName(typeof(TSagaData), sagaId);
             var slice = await session.ReadStreamEventsBackwardAsync(indexStream, -1, 1, true).ConfigureAwait(false);
             if (slice.Status != SliceReadStatus.Success)
@@ -73,7 +75,7 @@ namespace NServiceBus
             }
             if (slice.Events[0].Event.EventType != SagaIndexEventType)
             {
-                return operations.ReadSagaData<TSagaData>(indexStream, slice);
+                return await operations.ReadSagaData<TSagaData>(indexStream, slice.Events[0], messageId);
             }
             var indexEntry = slice.Events[0].Event.Data.ParseJson<SagaIndexEvent>();
             var dataStream = indexEntry.DataStreamName;
@@ -82,7 +84,7 @@ namespace NServiceBus
             {
                 return default(TSagaData);
             }
-            var sagaData = operations.ReadSagaData<TSagaData>(dataStream, slice);
+            var sagaData = await operations.ReadSagaData<TSagaData>(dataStream, slice.Events[0], messageId);
             if (sagaData != null)
             {
                 return sagaData;
@@ -93,13 +95,15 @@ namespace NServiceBus
         public async Task<TSagaData> Get<TSagaData>(string propertyName, object propertyValue, SynchronizedStorageSession session, ContextBag context) where TSagaData : IContainSagaData
         {
             var operations = new SagaPersisterAtomicOperations(session);
+            var incomingMessage = context.Get<IncomingMessage>();
+            var messageId = incomingMessage.MessageId;
             var streamName = BuildSagaDataStreamName(typeof(TSagaData), propertyValue);
             var slice = await session.ReadStreamEventsBackwardAsync(streamName, -1, 1, true).ConfigureAwait(false);
             if (slice.Status != SliceReadStatus.Success)
             {
                 return default(TSagaData);
             }
-            return operations.ReadSagaData<TSagaData>(streamName, slice);
+            return await operations.ReadSagaData<TSagaData>(streamName, slice.Events[0], messageId);
         }
 
         static string BuildSagaDataStreamName(Type sagaType, object correlationPropertyValue)
