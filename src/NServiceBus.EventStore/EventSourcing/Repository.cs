@@ -36,10 +36,15 @@ namespace NServiceBus.EventSourcing
             var lastEvent = readResult.Events.Last();
             if (lastEvent.Link != null && !lastEvent.IsResolved)
             {
-                //We got an invalid link. This means the previous message has failed committing the outbox transaction. We throw here to trigger retries.
-                throw new Exception("A previous message destined for this saga has failed. Triggering retries.");
+                var linkMetadata = lastEvent.Link.Metadata.ParseJson<LinkEvent>();
+                if (linkMetadata.MessageId != context.MessageId)
+                {
+                    //We got an invalid link. This means the previous message has failed committing the outbox transaction. We throw here to trigger retries.
+                    throw new Exception("A previous message destined for this saga has failed. Triggering retries.");
+                }
             }
-            var events = readResult.Events.Select(e => Deserialize(e.Event));
+            //Deserialize only normal events and resolved links
+            var events = readResult.Events.Where(e => e.Link == null || e.IsResolved).Select(e => Deserialize(e.Event));
             var instance = new T();
             instance.Hydrate(id, events, readResult.LastEventNumber);
             return instance;

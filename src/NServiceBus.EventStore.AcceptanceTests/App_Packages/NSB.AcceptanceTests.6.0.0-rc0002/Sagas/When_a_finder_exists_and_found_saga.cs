@@ -1,4 +1,6 @@
-﻿namespace NServiceBus.AcceptanceTests.Sagas
+﻿using NServiceBus.Transport;
+
+namespace NServiceBus.AcceptanceTests.Sagas
 {
     using System.Threading.Tasks;
     using AcceptanceTesting;
@@ -46,7 +48,9 @@
                 public Task<TestSaga08.SagaData08> FindBy(SomeOtherMessage message, SynchronizedStorageSession storageSession, ReadOnlyContextBag context)
                 {
                     Context.FinderUsed = true;
-                    return SagaPersister.Get<TestSaga08.SagaData08>("Property", "Test", storageSession, new ContextBag());
+                    var bag = new ContextBag();
+                    bag.Set(context.Get<IncomingMessage>());
+                    return SagaPersister.Get<TestSaga08.SagaData08>("Property", "Test", storageSession, bag);
                 }
             }
 
