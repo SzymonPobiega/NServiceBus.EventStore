@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Exceptions;
 using NServiceBus.Extensibility;
-using NServiceBus.Internal;
-using NServiceBus.Persistence.EventStore.SagaPersister;
 using NServiceBus.Sagas;
-using NServiceBus.Transports;
+using NServiceBus.Transport;
 using NUnit.Framework;
 
 namespace NServiceBus.EventStore.Tests
@@ -19,114 +14,162 @@ namespace NServiceBus.EventStore.Tests
     public class SagaPersisterTests
     {
         IEventStoreConnection connection;
+        SagaPersister persister;
+        OutboxPersister outboxPersister;
+        const string CorrelationPropName = "StringProperty";
 
         [Test]
-        public async Task It_saves_saga_data_and_creates_index()
+        public async Task When_a_duplicate_messages_starting_a_saga_arrive_simultanously_one_of_them_fails()
         {
-            var messageId = Guid.NewGuid().ToString();
-            var correlationProperty = Guid.NewGuid().ToString("N");
+            var context = CreateMessageContext();
+            var transaction1 = await outboxPersister.BeginTransaction(context);
+            var session1 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction1);
 
-            var persister = new SagaPersister();
-            
-            var sagaId = await ProcessMessage(messageId, null, correlationProperty, int.MaxValue, new List<Guid>()).ConfigureAwait(false);;
+            var sagaData = CreateNewSagaData();
+            await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), session1, context);
 
-            var context = CreateContext(messageId);
-            var loadedById = await persister.Get<SagaData>(sagaId.Value, new EventStoreSynchronizedStorageSession(connection), context).ConfigureAwait(false);
-            var loadedByCorrelationProp = await persister.Get<SagaData>("StringProperty", correlationProperty, new EventStoreSynchronizedStorageSession(connection), context).ConfigureAwait(false);
+            var transaction2 = await outboxPersister.BeginTransaction(context);
+            var session2 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction2);
 
-            Assert.IsNotNull(loadedById);
-            Assert.IsNotNull(loadedByCorrelationProp);
-        }
-
-
-        [Test]
-        public async Task It_prevents_creating_two_instances_when_concurrently_trying_to_save()
-        {
-            var firstMessageId = Guid.NewGuid().ToString();
-            var secondMessageId = Guid.NewGuid().ToString();
-            var correlationProperty = Guid.NewGuid().ToString("N");
-            var outgoingMessages = new List<Guid>();
-            await ProcessMessage(firstMessageId, null, correlationProperty, 2, outgoingMessages).ConfigureAwait(false);
             try
             {
-                await ProcessMessage(secondMessageId, null, correlationProperty, int.MaxValue, outgoingMessages).ConfigureAwait(false);
-                Assert.Fail();
+                await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), session2, context);
+                Assert.Fail("Expected exception");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //Intentional
+                StringAssert.StartsWith("Append failed due to WrongExpectedVersion.", ex.Message);
             }
-            Assert.AreEqual(1, outgoingMessages.Distinct().Count());
         }
 
         [Test]
-        public async Task It_saves_saga_data_if_previously_only_index_has_been_created()
+        public async Task When_a_duplicate_messages_starting_a_saga_arrive_sequentially_one_of_them_fails()
         {
-            var messageId = Guid.NewGuid().ToString();
-            var correlationProperty = Guid.NewGuid().ToString("N");
+            var context = CreateMessageContext();
+            var sagaData = CreateNewSagaData();
 
-            var outgoingMessages = new List<Guid>();
-            await ProcessMessage(messageId, null, correlationProperty, 2, outgoingMessages).ConfigureAwait(false);
-            var sagaId = await ProcessMessage(messageId, null, correlationProperty, int.MaxValue, outgoingMessages).ConfigureAwait(false);
+            var transaction1 = await outboxPersister.BeginTransaction(context);
+            var session1 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction1);
+            await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), session1, context);
+            await transaction1.Commit();
 
-            var persister = new SagaPersister();
-            var context = CreateContext(messageId);
-            var loadedById = await persister.Get<SagaData>(sagaId.Value, new EventStoreSynchronizedStorageSession(connection), context).ConfigureAwait(false);
+            var transaction2 = await outboxPersister.BeginTransaction(context);
+            var session2 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction2);
+            var loadedData = await persister.Get<SagaData>(CorrelationPropName, sagaData.StringProperty, session2, context);
+            await persister.Update(loadedData, session2, context);
 
-            Assert.IsNotNull(loadedById);
-            Assert.IsTrue(outgoingMessages.Distinct().Count() == 1);
-        }
-
-        static ContextBag CreateContext(string messageId)
-        {
-            var context = new ContextBag();
-            context.Set(new IncomingMessage(messageId, new Dictionary<string, string>(), new MemoryStream()));
-            return context;
-        }
-
-        async Task<Guid?> ProcessMessage(string messageId, Guid? sagaId, string correlationProperty, int successfulCalls, List<Guid> outgoingMessages)
-        {
-            var persister = new SagaPersister();
-            var c = new ChaosMonkeyConnectionAdapter(connection, successfulCalls);
-            var context = new ContextBag();
-            context.Set(new IncomingMessage(messageId, new Dictionary<string, string>(), new MemoryStream()));
-            var session = new EventStoreSynchronizedStorageSession(c);
-            var data = new SagaData();
             try
             {
-                data = sagaId.HasValue
-                    ? await persister.Get<SagaData>(sagaId.Value, session, context).ConfigureAwait(false)
-                    : await persister.Get<SagaData>("StringProperty", correlationProperty, session, context).ConfigureAwait(false);
-
-                sagaId = data?.Id ?? Guid.NewGuid();
-
-                outgoingMessages.Add(sagaId.Value);
-
-                if (data == null)
-                {
-                    data = new SagaData()
-                    {
-                        Id = sagaId.Value,
-                        OriginalMessageId = messageId,
-                        StringProperty = correlationProperty
-                    };
-                    await persister.Save(data, new SagaCorrelationProperty("StringProperty", correlationProperty), session, context).ConfigureAwait(false);
-                }
-                else
-                {
-                    await persister.Update(data, session, context).ConfigureAwait(false);
-                }
+                await transaction2.Commit();
+                Assert.Fail("Expected exception");
             }
-            catch (ChaosException)
+            catch (Exception ex)
             {
+                StringAssert.StartsWith("Append failed due to WrongExpectedVersion.", ex.Message);
             }
-            return data?.Id;
         }
 
-        
+        [Test]
+        public async Task When_a_two_messages_starting_a_saga_arrive_simultanously_one_of_them_fails()
+        {
+            var context1 = CreateMessageContext();
+            var context2 = CreateMessageContext();
+            var transaction1 = await outboxPersister.BeginTransaction(context1);
+            var session1 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction1);
+
+            var sagaData = CreateNewSagaData();
+            await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), session1, context1);
+
+            var transaction2 = await outboxPersister.BeginTransaction(context2);
+            var session2 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction2);
+
+            try
+            {
+                await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), session2, context2);
+                Assert.Fail("Expected exception");
+            }
+            catch (Exception ex)
+            {
+                StringAssert.StartsWith("Append failed due to WrongExpectedVersion.", ex.Message);
+            }
+        }
+
+        [Test]
+        public async Task When_a_two_messages_starting_a_saga_arrive_sequentially_both_succeed()
+        {
+            var context1 = CreateMessageContext();
+            var context2 = CreateMessageContext();
+            var sagaData = CreateNewSagaData();
+
+            var transaction1 = await outboxPersister.BeginTransaction(context1);
+            var session1 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction1);
+            await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), session1, context1);
+            await transaction1.Commit();
+
+            var transaction2 = await outboxPersister.BeginTransaction(context2);
+            var session2 = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)transaction2);
+            var loadedData = await persister.Get<SagaData>(CorrelationPropName, sagaData.StringProperty, session2, context2);
+            await persister.Update(loadedData, session2, context2);
+            await transaction2.Commit();
+        }
+
+        [Test]
+        public async Task When_using_outbox_saga_state_is_reconstituted_from_linked_events()
+        {
+            var sagaData = CreateNewSagaData();
+            await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), new EventStoreSynchronizedStorageSession(connection), CreateMessageContext());
+
+            //Process first message
+            await SimulateProcessingMessage(sagaData, d => { d.Value = 2; }, true);
+
+            //Verify state
+            await SimulateProcessingMessage(sagaData, d =>
+            {
+                Assert.AreEqual(2, d.Value);
+            }, true);
+        }
+
+        [Test]
+        public async Task When_using_outbox_and_message_fails_the_subsequent_messages_fails_to()
+        {
+            var sagaData = CreateNewSagaData();
+            await persister.Save(sagaData, new SagaCorrelationProperty(CorrelationPropName, sagaData.StringProperty), new EventStoreSynchronizedStorageSession(connection), CreateMessageContext());
+
+            //Fail first message
+            await SimulateProcessingMessage(sagaData, d => { d.Value = 2; }, false);
+
+            try
+            {
+                await SimulateProcessingMessage(sagaData, d =>
+                {
+                    Assert.AreEqual(1, d.Value);
+                }, true);
+                Assert.Fail("Expected exception");
+            }
+            catch (Exception ex)
+            {
+                Assert.AreEqual(ex.Message, "A previous message destined for this saga has failed. Triggering retries.");
+            }
+        }
+
+        async Task SimulateProcessingMessage(SagaData sagaData, Action<SagaData> action, bool commitOutboxTransaction)
+        {
+            var context = CreateMessageContext();
+            var outboxTransaction = await outboxPersister.BeginTransaction(context);
+            var session = new OutboxEventStoreSynchronizedStorageSession(connection, (EventStoreOutboxTransaction)outboxTransaction);
+            sagaData = await persister.Get<SagaData>(CorrelationPropName, sagaData.StringProperty, session, context);
+            action(sagaData);
+            await persister.Update(sagaData, session, context);
+            if (commitOutboxTransaction)
+            {
+                await outboxTransaction.Commit();
+            }
+        }
+
         class SagaData : ContainSagaData
         {
             public string StringProperty { get; set; }
+            public int Value { get; set; }
         }
 
         [SetUp]
@@ -134,6 +177,31 @@ namespace NServiceBus.EventStore.Tests
         {
             connection = EventStoreConnection.Create(new IPEndPoint(IPAddress.Loopback, 1113));
             connection.ConnectAsync().GetAwaiter().GetResult();
+
+            persister = new SagaPersister();
+            outboxPersister = new OutboxPersister(null);
+        }
+
+        ContextBag CreateMessageContext()
+        {
+            var messageId = Guid.NewGuid().ToString("N");
+            var contextBag = new ContextBag();
+            var incomingMessage = new IncomingMessage(messageId, new Dictionary<string, string>(), new byte[0]);
+            contextBag.Set(incomingMessage);
+            var transaction = new TransportTransaction();
+            transaction.Set(connection);
+            contextBag.Set(transaction);
+            return contextBag;
+        }
+
+        static SagaData CreateNewSagaData()
+        {
+            return new SagaData
+            {
+                Id = Guid.NewGuid(),
+                StringProperty = Guid.NewGuid().ToString("N"),
+                Value = 1
+            };
         }
 
         [TearDown]

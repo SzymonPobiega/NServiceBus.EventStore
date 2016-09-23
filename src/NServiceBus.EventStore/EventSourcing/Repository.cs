@@ -10,11 +10,9 @@ namespace NServiceBus.EventSourcing
     public class Repository<T>
         where T : Aggregate, new()
     {
-        const string LockEventType = "$lock";
-
         public Repository(IMessageHandlerContext context, string collectionName)
         {
-            if (!context.SynchronizedStorageSession.SupportsAtomicQueueForStore())
+            if (!context.SynchronizedStorageSession.SupportsOutbox())
             {
                 throw new Exception("Aggregates require enabling the Outbox feature.");
             }
@@ -24,39 +22,29 @@ namespace NServiceBus.EventSourcing
 
         public async Task<T> Load(Guid id)
         {
-            var readResult = await context.SynchronizedStorageSession.ReadStreamEventsForwardAsync(BuildStreamName(id), 0, 4096, false).ConfigureAwait(false);
+            var readResult = await context.SynchronizedStorageSession.ReadStreamEventsForwardAsync(BuildStreamName(id), 0, 4096, true).ConfigureAwait(false);
             if (readResult.Status == SliceReadStatus.StreamNotFound)
             {
                 var newInstance = new T();
-                newInstance.Hydrate(id, Enumerable.Empty<object>(), ExpectedVersion.NoStream, false);
+                newInstance.Hydrate(id, Enumerable.Empty<object>(), ExpectedVersion.NoStream);
                 return newInstance;
             }
             if (readResult.Status == SliceReadStatus.StreamDeleted)
             {
                 throw new Exception($"Aggregate {id} has been deleted.");
             }
-            var locked = CheckLock(id, readResult);
-            var events = readResult.Events.Where(e => e.Event.EventType != LockEventType).Select(e => Deserialize(e.Event));
+            var lastEvent = readResult.Events.Last();
+            if (lastEvent.Link != null && !lastEvent.IsResolved)
+            {
+                //We got an invalid link. This means the previous message has failed committing the outbox transaction. We throw here to trigger retries.
+                throw new Exception("A previous message destined for this saga has failed. Triggering retries.");
+            }
+            var events = readResult.Events.Select(e => Deserialize(e.Event));
             var instance = new T();
-            instance.Hydrate(id, events, readResult.LastEventNumber, locked);
+            instance.Hydrate(id, events, readResult.LastEventNumber);
             return instance;
         }
-
-        bool CheckLock(Guid id, StreamEventsSlice readResult)
-        {
-            var lastLock = readResult.Events.Last();
-            if (lastLock.Event.EventType != LockEventType)
-            {
-                return false;
-            }
-            var lastLockData = lastLock.Event.Data.ParseJson<AggregateLockEvent>();
-            if (lastLockData.LockedBy != context.MessageId)
-            {
-                throw new Exception($"Aggregate {id} locked for processing by message {lastLockData.LockedBy}.");
-            }
-            return true;
-        }
-
+        
         public async Task Store(T aggregate)
         {
             var events = aggregate.Dehydrate();
@@ -64,24 +52,18 @@ namespace NServiceBus.EventSourcing
             var eventData = events.Select(Serialize);
             var streamName = BuildStreamName(aggregate.Id);
 
-            if (sendAction.Any())
+            foreach (var act in sendAction)
             {
-                //Use the lock & outbox
-                var lockEvent = new EventData(Guid.NewGuid(), LockEventType, true, new AggregateLockEvent(context.MessageId).ToJsonBytes(), new byte[0]);
-                await context.SynchronizedStorageSession.AppendToStreamAsync(streamName, aggregate.Version, lockEvent).ConfigureAwait(false);
+                await act(context);
+            }
 
-                foreach (var action in sendAction)
-                {
-                    await action(context).ConfigureAwait(false);
-                }
-                foreach (var e in eventData)
-                {
-                    context.SynchronizedStorageSession.AtomicQueueForStore(streamName, e);
-                }
+            if (context.SynchronizedStorageSession.SupportsOutbox())
+            {
+                var links = eventData.Select(e => context.SynchronizedStorageSession.AtomicQueueForStore(streamName, e));
+                await context.SynchronizedStorageSession.AppendToStreamAsync(streamName, aggregate.Version, links.ToArray()).ConfigureAwait(false);
             }
             else
             {
-                //Append events directly
                 await context.SynchronizedStorageSession.AppendToStreamAsync(streamName, aggregate.Version, eventData.ToArray()).ConfigureAwait(false);
             }
         }

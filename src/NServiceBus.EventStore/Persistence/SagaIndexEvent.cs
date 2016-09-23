@@ -4,13 +4,11 @@ namespace NServiceBus.Persistence.EventStore.SagaPersister
 {
     public class SagaIndexEvent
     {
-        public Guid SagaId { get; set; }
-        public string OriginalMessageId { get; set; }
+        public string DataStreamName { get; set; }
 
-        public SagaIndexEvent(Guid sagaId, string originalMessageId)
+        public SagaIndexEvent(string dataStreamName)
         {
-            SagaId = sagaId;
-            OriginalMessageId = originalMessageId;
+            DataStreamName = dataStreamName;
         }
 
         public SagaIndexEvent()

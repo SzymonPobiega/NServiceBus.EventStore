@@ -18,14 +18,13 @@ namespace NServiceBus
 
         public void Dispose()
         {
-            //NOOP.
+            //NOOP
         }
 
         public Task CompleteAsync()
         {
             return TaskEx.CompletedTask;
         }
-
 
         public virtual bool SupportsAtomicAppend => false;
 

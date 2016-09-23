@@ -7,7 +7,7 @@ using NServiceBus.Persistence.EventStore.SagaPersister;
 namespace NServiceBus
 {
     /// <summary>
-    ///     Provides extensions for using EventStore persistence.
+    /// Provides extensions for using EventStore persistence.
     /// </summary>
     public static class SynchronizedStorageSessionExtensions
     {
@@ -17,32 +17,33 @@ namespace NServiceBus
         /// <param name="session">Session.</param>
         /// <param name="saga">Saga data.</param>
         /// <param name="version">Version returned from the store.</param>
-        public static void ProvideSagaVersion(this SynchronizedStorageSession session, IContainSagaData saga, int version)
+        /// <param name="dataStream">Stream to be used to persist saga data.</param>
+        public static void ProvideSagaVersion(this SynchronizedStorageSession session, IContainSagaData saga, int version, string dataStream)
         {
-            DowncastSession(session).StoreSagaVersion(saga.Id, new SagaVersion(version, false));
+            DowncastSession(session).StoreSagaVersion(saga.Id, new SagaVersion(version, dataStream));
         }
 
         /// <summary>
-        ///     Checks if atomic appends (via outbox) are enabled in this session.
+        /// Checks if atomic appends (via outbox) are enabled in this session.
         /// </summary>
         /// <param name="session">Session.</param>
         /// <returns></returns>
-        public static bool SupportsAtomicQueueForStore(this SynchronizedStorageSession session)
+        public static bool SupportsOutbox(this SynchronizedStorageSession session)
         {
             return DowncastSession(session).SupportsAtomicAppend;
         }
 
         /// <summary>
-        ///     Appends an event to the collection of events to be persisted at the end of message processing.
+        /// Appends an event to the collection of events to be persisted at the end of message processing.
         /// </summary>
-        public static void AtomicQueueForStore(this SynchronizedStorageSession session, string destinationStream, EventData e)
+        public static EventData AtomicQueueForStore(this SynchronizedStorageSession session, string destinationStream, EventData e)
         {
             var outboxSession = session as OutboxEventStoreSynchronizedStorageSession;
             if (outboxSession == null)
             {
                 throw new Exception("Atomic appends are not supported without the EventStore outbox.");
             }
-            outboxSession.AtomicAppend(destinationStream, e);
+            return outboxSession.AtomicAppend(destinationStream, e);
         }
 
         static EventStoreSynchronizedStorageSession DowncastSession(SynchronizedStorageSession session)

@@ -41,19 +41,6 @@ namespace NServiceBus
                 return new OutboxMessage(messageId, new TransportOperation[0]);
             }
             var outboxRecord = DeserializeOutboxRecord(readResult);
-            var persistenceOps =
-                readResult.Events.Where(
-                    e => e.Event.EventType != DispatchedEventType && e.Event.EventType != OutboxRecordEventType)
-                    .Select(
-                        e =>
-                        {
-                            var r = e.Event;
-                            var destination = outboxRecord.PersistenceOperations[r.EventId];
-                            return new OutboxPersistenceOperation(destination, new EventData(r.EventId, r.EventType, r.IsJson, r.Data, r.Metadata));
-                        })
-                    .ToArray();
-
-            context.Set(persistenceOps);
             return new OutboxMessage(messageId, outboxRecord.TransportOperations);
         }
 
@@ -66,8 +53,7 @@ namespace NServiceBus
         public Task Store(OutboxMessage message, OutboxTransaction transaction, ContextBag context)
         {
             var typedTransaction = (EventStoreOutboxTransaction) transaction;
-            var persistenceOps = typedTransaction.Persist(message, GetStreamName(message.MessageId));
-            context.Set(persistenceOps);
+            typedTransaction.Persist(message);
             return Task.FromResult(0);
         }
 
@@ -75,17 +61,8 @@ namespace NServiceBus
         {
             var connection = GetConnection(context);
             var streamName = GetStreamName(messageId);
-
-            OutboxPersistenceOperation[] persistenceOps;
-            if (!context.TryGet(out persistenceOps))
-            {
-                return; //We can skip adding another dispatched event because if there is no persistence ops it means Get returned an alreadt dispatched outbox record.
-            }
-            foreach (var op in persistenceOps)
-            {
-                await connection.AppendToStreamAsync(op.DestinationStream, ExpectedVersion.Any, op.Event).ConfigureAwait(false);
-            }
-            var dispatchedEvent = new EventData(Guid.NewGuid(),DispatchedEventType, false, new byte[0], new byte[0]);
+            
+            var dispatchedEvent = new EventData(Guid.NewGuid(), DispatchedEventType, false, new byte[0], new byte[0]);
             await connection.AppendToStreamAsync(streamName, ExpectedVersion.Any, dispatchedEvent).ConfigureAwait(false);
         }
 
@@ -97,7 +74,8 @@ namespace NServiceBus
         public Task<OutboxTransaction> BeginTransaction(ContextBag context)
         {
             var connection = GetConnection(context);
-            return Task.FromResult<OutboxTransaction>(new EventStoreOutboxTransaction(connection));
+            var messageId = context.Get<IncomingMessage>().MessageId;
+            return Task.FromResult<OutboxTransaction>(new EventStoreOutboxTransaction(GetStreamName(messageId), connection));
         }
 
         IEventStoreConnection GetConnection(ContextBag context)

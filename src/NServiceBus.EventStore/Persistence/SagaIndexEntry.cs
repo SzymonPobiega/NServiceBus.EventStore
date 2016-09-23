@@ -4,13 +4,11 @@ namespace NServiceBus
 {
     class SagaIndexEntry
     {
-        public SagaIndexEvent IndexEvent { get; }
-        public byte[] SagaData { get; }
+        public string DataStreamName { get; }
 
-        public SagaIndexEntry(SagaIndexEvent indexEvent, byte[] sagaData)
+        public SagaIndexEntry(string dataStreamName)
         {
-            IndexEvent = indexEvent;
-            SagaData = sagaData;
+            DataStreamName = dataStreamName;
         }
     }
 }

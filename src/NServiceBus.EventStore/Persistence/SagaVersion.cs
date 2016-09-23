@@ -2,14 +2,13 @@
 {
     public class SagaVersion
     {
-        public bool? AlreadyLocked { get; }
         public int Version { get; }
+        public string StreamName { get; }
 
-        public SagaVersion(int version, bool? alreadyLocked)
+        public SagaVersion(int version, string streamName)
         {
-            this.Version = version;
-            this.AlreadyLocked = alreadyLocked;
+            Version = version;
+            StreamName = streamName;
         }
-
     }
 }

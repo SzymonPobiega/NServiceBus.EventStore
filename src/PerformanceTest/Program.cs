@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,64 +11,129 @@ namespace PerformanceTest
 {
     class Program
     {
-        public const int MessageCount = 1000;
-        const int SendThreadCount = 10;
-        public static int Received;
+        public const int MessageCount = 50000;
+        const int SendThreadCount = 5;
+        public static ManualResetEventSlim ReceivingDoneEvent = new ManualResetEventSlim(false);
+        public static Stopwatch ReceiveWatch = new Stopwatch();
 
         static void Main(string[] args)
         {
-            var endpointConfig = new EndpointConfiguration("X");
-            endpointConfig.UseTransport<EventStoreTransport>().ConnectionString("singleNode=127.0.0.1;user=admin;password=changeit");
-            endpointConfig.UsePersistence<EventStorePersistence>();
-            endpointConfig.SendFailedMessagesTo("error");
+            var receiverConfig = BuildReceiverConfig();
+            InstallReceiver(receiverConfig).GetAwaiter().GetResult();
 
-            Run(endpointConfig).GetAwaiter().GetResult();
+            var senderConfig = new EndpointConfiguration("Sender");
+            var routing = senderConfig.UseTransport<EventStoreTransport>().ConnectionString("singleNode=127.0.0.1;user=admin;password=changeit").Routing();
+            routing.RouteToEndpoint(typeof(MyMessage), "Receiver");
+            senderConfig.UsePersistence<EventStorePersistence>();
+            senderConfig.SendFailedMessagesTo("error");
+            senderConfig.EnableInstallers(null);
+
+            RunSender(senderConfig).GetAwaiter().GetResult();
+
+            receiverConfig = BuildReceiverConfig();
+
+            RunReceiver(receiverConfig).GetAwaiter().GetResult();
         }
 
-        static async Task Run(EndpointConfiguration endpointConfig)
+        static EndpointConfiguration BuildReceiverConfig()
         {
+            var receiverConfig = new EndpointConfiguration("Receiver");
+            receiverConfig.UseTransport<EventStoreTransport>()
+                .ConnectionString("singleNode=127.0.0.1;user=admin;password=changeit");
+            receiverConfig.UsePersistence<EventStorePersistence>();
+            receiverConfig.SendFailedMessagesTo("error");
+            return receiverConfig;
+        }
+
+        static async Task RunReceiver(EndpointConfiguration endpointConfig)
+        {
+            Console.WriteLine("Receiving");
             var startable = await Endpoint.Create(endpointConfig).ConfigureAwait(false);
             var started = await startable.Start().ConfigureAwait(false);
 
+            ReceivingDoneEvent.Wait();
+            ReceiveWatch.Stop();
+            Console.WriteLine($"Sent all {MessageCount} messages in {ReceiveWatch.ElapsedMilliseconds} ms.");
+            Console.ReadLine();
+            await started.Stop();
+        }
+
+        static async Task InstallReceiver(EndpointConfiguration endpointConfig)
+        {
+            endpointConfig.EnableInstallers(null);
+            Console.WriteLine("Installing receiver");
+            var startable = await Endpoint.Create(endpointConfig).ConfigureAwait(false);
+            var started = await startable.Start().ConfigureAwait(false);
+            await started.Stop();
+        }
+
+        static async Task RunSender(EndpointConfiguration endpointConfig)
+        {
+            var startable = await Endpoint.Create(endpointConfig).ConfigureAwait(false);
+            var started = await startable.Start().ConfigureAwait(false);
+            var doneEvent = new ManualResetEventSlim(false);
+
             Console.WriteLine("Press <enter> to start sending messages.");
             Console.ReadLine();
-
-            var threads = Enumerable.Range(0, SendThreadCount).Select(i => new Thread(() =>
+            var threads = new List<Thread>();
+            for (int i = 0; i < SendThreadCount; i++)
             {
-                var toSend = MessageCount/SendThreadCount;
-                for (var j = 0; j < toSend; j++)
-                {
-                    //started.SendLocal(new MyMessage()).GetAwaiter().GetResult();
-                    var options = new SendOptions();
-                    options.SetDestination("null");
-                    started.Send(new MyMessage(), options).GetAwaiter().GetResult();
-                }
-            })).ToArray();
-
-            foreach (var thread in threads)
-            {
-                thread.Start();
+                threads.Add(CreateSenderThread(started, doneEvent));
             }
+            var sw = Stopwatch.StartNew();
+            sw.Start();
+            threads.ForEach(thread => thread.Start());
+            doneEvent.Wait();
+            sw.Stop();
 
-            foreach (var thread in threads)
-            {
-                thread.Join();
-            }
-
-            Console.WriteLine($"Sent all {MessageCount} messages.");
+            Console.WriteLine($"Sent all {MessageCount} messages in {sw.ElapsedMilliseconds} ms.");
 
             Console.ReadLine();
             await started.Stop();
+        }
+
+        static Thread CreateSenderThread(IMessageSession messageSession, ManualResetEventSlim doneEvent)
+        {
+            return new Thread(() =>
+            {
+                var succ = 0;
+                var messagesPerThread = MessageCount / SendThreadCount;
+                for (int j = 0; j < messagesPerThread; ++j)
+                {
+                    var task = messageSession.Send(new MyMessage());
+                    task.ContinueWith(x =>
+                    {
+                        if (x.IsFaulted)
+                        {
+                            Console.WriteLine("Error!" + x.Exception);
+                            return;
+                        }
+                        var localAll = Interlocked.Increment(ref succ);
+                        if (localAll == messagesPerThread)
+                        {
+                            doneEvent.Set();
+                        }
+                    });
+                }
+            })
+            {IsBackground = true};
         }
     }
 
     class MyMessageHandler : IHandleMessages< MyMessage>
     {
+        static int received;
+
         public Task Handle(MyMessage message, IMessageHandlerContext context)
         {
-            if (Interlocked.Increment(ref Program.Received) == Program.MessageCount)
+            var localReceived = Interlocked.Increment(ref received);
+            if (localReceived == Program.MessageCount)
             {
-                Console.WriteLine("Received all messages.");
+                Program.ReceivingDoneEvent.Set();
+            }
+            else if (localReceived == 1)
+            {
+                Program.ReceiveWatch.Start();
             }
             return Task.FromResult(0);
         }

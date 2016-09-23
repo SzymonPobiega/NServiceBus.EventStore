@@ -11,18 +11,16 @@ namespace NServiceBus.EventSourcing
         readonly Port[] ports;
         protected internal Guid Id { get; private set; }
         internal int Version { get; private set; }
-        internal bool Locked { get; private set; }
 
         protected Aggregate(params Port[] ports)
         {
             this.ports = ports;
         }
 
-        internal void Hydrate(Guid id, IEnumerable<object> events, int version, bool locked)
+        internal void Hydrate(Guid id, IEnumerable<object> events, int version)
         {
             Id = id;
             Version = version;
-            Locked = locked;
             comittedEvents = events.ToList();
             foreach (var @event in comittedEvents)
             {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Exceptions;
 using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
@@ -23,141 +22,89 @@ namespace NServiceBus
         {
             var operations = new SagaPersisterAtomicOperations(session);
 
-            var streamName = BuildSagaStreamName(sagaData.GetType(), sagaData.Id);
-
             return correlationProperty != null
-                ? SaveWithIndex(sagaData, correlationProperty, operations, streamName)
-                : SaveWithoutIndex(sagaData, operations, session, streamName, context.Get<IncomingMessage>().MessageId);
+                ? SaveSagaWithCorrelationProperty(sagaData, correlationProperty, operations, session)
+                : SaveSagaWithoutCorrelationProperty(sagaData, session);
         }
 
-        static async Task SaveWithIndex(IContainSagaData sagaData, SagaCorrelationProperty correlationProperty, SagaPersisterAtomicOperations operations, string streamName)
+        static async Task SaveSagaWithCorrelationProperty(IContainSagaData sagaData, SagaCorrelationProperty correlationProperty, SagaPersisterAtomicOperations operations, SynchronizedStorageSession session)
         {
             var propertyValue = correlationProperty.Value;
-            var indexStream = BuildIndexStreamName(sagaData.GetType(), propertyValue);
-
-            await operations.CreateMarker(indexStream, sagaData).ConfigureAwait(false);
-            var linkEvent = await CreateIndex(sagaData, indexStream, operations).ConfigureAwait(false);
-            await operations.SaveSagaDataLink(streamName, linkEvent).ConfigureAwait(false);
-            await operations.DeleteMarker(sagaData).ConfigureAwait(false);
-        }
-
-        static Task SaveWithoutIndex(IContainSagaData sagaData, SagaPersisterAtomicOperations operations, SynchronizedStorageSession session, string streamName, string messageId)
-        {
-            return SaveSagaData(sagaData, session, operations, messageId, streamName, new SagaVersion(ExpectedVersion.NoStream, true));
-        }
-
-        static async Task<EventData> CreateIndex(IContainSagaData saga, string indexStream, SagaPersisterAtomicOperations operations)
-        {
-            try
-            {
-                await operations.CreateIndex(indexStream, saga, saga.OriginalMessageId).ConfigureAwait(false);
-            }
-            catch (WrongExpectedVersionException)
-            {
-                var indexEvent = await operations.ReadIndex(indexStream).ConfigureAwait(false);
-                if (indexEvent == null || saga.OriginalMessageId != indexEvent.IndexEvent.OriginalMessageId)
-                {
-                    throw;
-                }
-            }
-            var link = Json.UTF8NoBom.GetBytes($"1@{indexStream}");
-            return new EventData(Guid.NewGuid(), "$>", false, link, new byte[0]);
-        }
-
-        public async Task Update(IContainSagaData sagaData, SynchronizedStorageSession session, ContextBag context)
-        {
-            var operations = new SagaPersisterAtomicOperations(session);
-            var messageId = context.Get<IncomingMessage>().MessageId;
-            var streamName = BuildSagaStreamName(sagaData.GetType(), sagaData.Id);
-            var versionInfo = operations.GetSagaVersion(sagaData.Id);
-
-            await SaveSagaData(sagaData, session, operations, messageId, streamName, versionInfo);
-        }
-
-        static async Task SaveSagaData(IContainSagaData sagaData, SynchronizedStorageSession session, SagaPersisterAtomicOperations operations, string messageId, string streamName, SagaVersion versionInfo)
-        {
+            var indexStream = BuildSagaByIdStreamName(sagaData.GetType(), sagaData.Id);
+            var dataStream = BuildSagaDataStreamName(sagaData.GetType(), propertyValue);
             var stateChangeEvent = new EventData(Guid.NewGuid(), SagaDataEventType, true, sagaData.ToJsonBytes(), new byte[0]);
 
-            if (session.SupportsAtomicQueueForStore())
+            await operations.CreateIndex(indexStream, dataStream).ConfigureAwait(false);
+            await session.AppendToStreamAsync(dataStream, ExpectedVersion.NoStream, stateChangeEvent).ConfigureAwait(false);
+        }
+
+        static Task SaveSagaWithoutCorrelationProperty(IContainSagaData sagaData, SynchronizedStorageSession session)
+        {
+            var indexStream = BuildSagaByIdStreamName(sagaData.GetType(), sagaData.Id);
+            var stateChangeEvent = new EventData(Guid.NewGuid(), SagaDataEventType, true, sagaData.ToJsonBytes(), new byte[0]);
+
+            return session.AppendToStreamAsync(indexStream, ExpectedVersion.NoStream, stateChangeEvent);
+        }
+        
+        public Task Update(IContainSagaData sagaData, SynchronizedStorageSession session, ContextBag context)
+        {
+            var operations = new SagaPersisterAtomicOperations(session);
+            var versionInfo = operations.GetSagaVersion(sagaData.Id);
+
+            var dataStream = versionInfo.StreamName;
+            var stateChangeEvent = new EventData(Guid.NewGuid(), SagaDataEventType, true, sagaData.ToJsonBytes(), new byte[0]);
+
+            if (session.SupportsOutbox())
             {
-                var alreadyLocked = versionInfo.AlreadyLocked ??
-                                    await operations.CheckLock(messageId, streamName, sagaData).ConfigureAwait(false);
-                if (!alreadyLocked)
-                {
-                    await operations.CreateLock(messageId, streamName, versionInfo).ConfigureAwait(false);
-                }
-                session.AtomicQueueForStore(streamName, stateChangeEvent);
+                var outboxLink = session.AtomicQueueForStore(dataStream, stateChangeEvent);
+                return session.AppendToStreamAsync(dataStream, versionInfo.Version, outboxLink);
             }
-            else
-            {
-                await operations.SaveSagaData(streamName, versionInfo, stateChangeEvent).ConfigureAwait(false);
-            }
+            return session.AppendToStreamAsync(dataStream, versionInfo.Version, stateChangeEvent);
         }
 
         public async Task<TSagaData> Get<TSagaData>(Guid sagaId, SynchronizedStorageSession session, ContextBag context) where TSagaData : IContainSagaData
         {
             var operations = new SagaPersisterAtomicOperations(session);
-            var messageId = context.Get<IncomingMessage>().MessageId;
-            var streamName = BuildSagaStreamName(typeof(TSagaData), sagaId);
-            var result = await operations.ReadSagaData<TSagaData>(sagaId, messageId, streamName).ConfigureAwait(false);
-            if (result != null)
-            {
-                return result;
-            }
-            var markerEvent = await operations.ReadMarker(sagaId).ConfigureAwait(false);
-            if (markerEvent == null)
+            var indexStream = BuildSagaByIdStreamName(typeof(TSagaData), sagaId);
+            var slice = await session.ReadStreamEventsBackwardAsync(indexStream, -1, 1, true).ConfigureAwait(false);
+            if (slice.Status != SliceReadStatus.Success)
             {
                 return default(TSagaData);
             }
-            //Marker exists, let's find out if index also exists
-            var index = await operations.ReadIndex(markerEvent.SagaIndexStream).ConfigureAwait(false);
-            if (index == null)
+            if (slice.Events[0].Event.EventType != SagaIndexEventType)
             {
-                Log.Warn($"A message arrived destined for saga {sagaId} but that saga does not exist in the store. There is however a marker indicating a failed attempt to store it. "
-                         + "That saga likely generated a ghost message for which the current message is a reply. If the automatic retries are enabled the saga has probably been created "
-                         + "under a different ID. In order to prevent ghost messages either ensure that the Outbox is enabled or, when creating a saga, first raise a timeout and send out "
-                         + "messages from the handler of that timeout.");
+                return operations.ReadSagaData<TSagaData>(indexStream, slice);
             }
-            else
-            {
-                throw new Exception($"Message {index.IndexEvent.OriginalMessageId} is still in process of persisting the saga instance {sagaId} which this message is destined to. Reverting the processing to wait for that other message.");
-            }
-            return default(TSagaData);
-        }
-
-
-        public async Task<TSagaData> Get<TSagaData>(string propertyName, object propertyValue, SynchronizedStorageSession session, ContextBag context) where TSagaData : IContainSagaData
-        {
-            var operations = new SagaPersisterAtomicOperations(session);
-            var index = await operations.ReadIndex(BuildIndexStreamName(typeof(TSagaData), propertyValue)).ConfigureAwait(false);
-            if (index == null)
+            var indexEntry = slice.Events[0].Event.Data.ParseJson<SagaIndexEvent>();
+            var dataStream = indexEntry.DataStreamName;
+            slice = await session.ReadStreamEventsBackwardAsync(dataStream, -1, 1, true).ConfigureAwait(false);
+            if (slice.Status != SliceReadStatus.Success)
             {
                 return default(TSagaData);
             }
-            var messageId = context.Get<IncomingMessage>().MessageId;
-            var sagaId = index.IndexEvent.SagaId;
-            var streamName = BuildSagaStreamName(typeof(TSagaData), sagaId);
-            var sagaData = await operations.ReadSagaData<TSagaData>(sagaId, messageId, streamName).ConfigureAwait(false);
+            var sagaData = operations.ReadSagaData<TSagaData>(dataStream, slice);
             if (sagaData != null)
             {
                 return sagaData;
             }
-            if (index.IndexEvent.OriginalMessageId != messageId)
-            {
-                throw new Exception(
-                    $"Message {index.IndexEvent.OriginalMessageId} is still in process of persisting the saga instance {sagaId} which this message is destined to. Reverting the processing to wait for that other message.");
-            }
-
-            //Our message in the previous processing attempt managed to persist the index entry but not the entity entry
-            sagaData = index.SagaData.ParseJson<TSagaData>();
-            var versionInfo = new SagaVersion(ExpectedVersion.NoStream, false);
-            operations.StoreSagaVersion(sagaId, versionInfo);
-            return sagaData;
+            throw new Exception($"Either the saga has not yet been created successfully or saga ID {sagaId} has been sent out in a ghost message.");
         }
 
-        static string BuildIndexStreamName(Type sagaType, object value)
+        public async Task<TSagaData> Get<TSagaData>(string propertyName, object propertyValue, SynchronizedStorageSession session, ContextBag context) where TSagaData : IContainSagaData
         {
-            return "nsb-saga-index-" + BuildSagaTypeName(sagaType) + "-" + FormatValue(value);
+            var operations = new SagaPersisterAtomicOperations(session);
+            var streamName = BuildSagaDataStreamName(typeof(TSagaData), propertyValue);
+            var slice = await session.ReadStreamEventsBackwardAsync(streamName, -1, 1, true).ConfigureAwait(false);
+            if (slice.Status != SliceReadStatus.Success)
+            {
+                return default(TSagaData);
+            }
+            return operations.ReadSagaData<TSagaData>(streamName, slice);
+        }
+
+        static string BuildSagaDataStreamName(Type sagaType, object correlationPropertyValue)
+        {
+            return "nsb-saga-" + BuildSagaTypeName(sagaType) + "-" + FormatValue(correlationPropertyValue);
         }
 
         static string FormatValue(object value)
@@ -167,17 +114,26 @@ namespace NServiceBus
 
         public async Task Complete(IContainSagaData sagaData, SynchronizedStorageSession session, ContextBag context)
         {
-            var streamName = BuildSagaStreamName(sagaData.GetType(), sagaData.Id);
-            var indexLinkEvent = await session.ReadStreamEventsForwardAsync(streamName, 0, 1, false).ConfigureAwait(false);
-            var indexEntry = Json.UTF8NoBom.GetString(indexLinkEvent.Events[0].Event.Data);
-            var indexStream = indexEntry.Split('@')[1];
-            await session.DeleteStreamAsync(streamName, ExpectedVersion.Any, true).ConfigureAwait(false);
+            var indexStream = BuildSagaByIdStreamName(sagaData.GetType(), sagaData.Id);
+            var slice = await session.ReadStreamEventsBackwardAsync(indexStream, -1, 1, false).ConfigureAwait(false);
+            if (slice.Status != SliceReadStatus.Success)
+            {
+                return;
+            }
+            if (slice.Events[0].Event.EventType != SagaIndexEventType)
+            {
+                await session.DeleteStreamAsync(indexStream, ExpectedVersion.Any, true).ConfigureAwait(false);
+                return;
+            }
+            var indexEntry = slice.Events[0].Event.Data.ParseJson<SagaIndexEvent>();
+            var dataStream = indexEntry.DataStreamName;
+            await session.DeleteStreamAsync(dataStream, ExpectedVersion.Any, true).ConfigureAwait(false);
             await session.DeleteStreamAsync(indexStream, ExpectedVersion.Any, true).ConfigureAwait(false);
         }
 
-        static string BuildSagaStreamName(Type sagaType, Guid sagaId)
+        static string BuildSagaByIdStreamName(Type sagaType, Guid sagaId)
         {
-            return "nsb-saga-" + BuildSagaTypeName(sagaType) + "-" + sagaId.ToString("N");
+            return "nsb-saga-id-" + BuildSagaTypeName(sagaType) + "-" + sagaId.ToString("N");
         }
 
         static string BuildSagaTypeName(Type sagaType)
