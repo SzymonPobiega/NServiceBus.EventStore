@@ -12,8 +12,7 @@
     <requireLicenseAcceptance>$requireLicenseAcceptance$</requireLicenseAcceptance>
     <description>The most popular open-source service bus for .NET</description>
     <releaseNotes></releaseNotes>
-    <copyright>$copyright$</copyright>
-    <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
+    <tags>nservicebus eventstore geteventstore</tags>
     <dependencies>
       <dependency id="NServiceBus" version="[6.0.0-rc0002, 7.0.0)" />
       <dependency id="EventStore.Client" version="[3.9.0, 4.0.0)" />
