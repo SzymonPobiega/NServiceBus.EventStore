@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NServiceBus;
@@ -76,7 +74,7 @@ namespace PerformanceTest
             Console.WriteLine("Press <enter> to start sending messages.");
             Console.ReadLine();
             var threads = new List<Thread>();
-            for (int i = 0; i < SendThreadCount; i++)
+            for (var i = 0; i < SendThreadCount; i++)
             {
                 threads.Add(CreateSenderThread(started, doneEvent));
             }
@@ -98,7 +96,7 @@ namespace PerformanceTest
             {
                 var succ = 0;
                 var messagesPerThread = MessageCount / SendThreadCount;
-                for (int j = 0; j < messagesPerThread; ++j)
+                for (var j = 0; j < messagesPerThread; ++j)
                 {
                     var task = messageSession.Send(new MyMessage());
                     task.ContinueWith(x =>

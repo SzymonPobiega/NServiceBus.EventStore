@@ -1,4 +1,3 @@
-using System;
 using NServiceBus.Features;
 using NServiceBus.Internal;
 

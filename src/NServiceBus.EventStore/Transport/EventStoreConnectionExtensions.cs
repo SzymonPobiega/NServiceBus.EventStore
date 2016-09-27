@@ -1,5 +1,4 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 
@@ -7,7 +6,7 @@ namespace NServiceBus
 {
     static class EventStoreConnectionExtensions
     {
-        public static async Task EnsureClosed(this IEventStoreConnection connection, TimeSpan? timeout = null)
+        public static async Task EnsureClosed(this IEventStoreConnection connection)
         {
             var closeEvent = new TaskCompletionSource<bool>();
             connection.Closed += (sender, args) =>

@@ -4,7 +4,6 @@ using System.Text;
 using EventStore.ClientAPI;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
 using Formatting = Newtonsoft.Json.Formatting;
 
 namespace NServiceBus.Internal
@@ -26,7 +25,7 @@ namespace NServiceBus.Internal
 
         public static byte[] ToJsonBytes(this object source)
         {
-            string instring = JsonConvert.SerializeObject(source, Formatting.Indented, JsonSettings);
+            var instring = JsonConvert.SerializeObject(source, Formatting.Indented, JsonSettings);
             return UTF8NoBom.GetBytes(instring);
         }
 
@@ -37,7 +36,7 @@ namespace NServiceBus.Internal
 
         public static string ToJson(this object source)
         {
-            string instring = JsonConvert.SerializeObject(source, Formatting.Indented, JsonSettings);
+            var instring = JsonConvert.SerializeObject(source, Formatting.Indented, JsonSettings);
             return instring;
         }
 

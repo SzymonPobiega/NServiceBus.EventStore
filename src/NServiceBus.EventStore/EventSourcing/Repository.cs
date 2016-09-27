@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using NServiceBus.Internal;
-using NServiceBus.Persistence;
 
 namespace NServiceBus.EventSourcing
 {

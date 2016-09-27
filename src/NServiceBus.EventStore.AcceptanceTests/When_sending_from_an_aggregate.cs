@@ -1,11 +1,10 @@
-﻿using NServiceBus.EventSourcing;
-
-namespace NServiceBus.AcceptanceTests.EventSourcing
+﻿namespace NServiceBus.AcceptanceTests.EventSourcing
 {
     using System;
     using System.Threading.Tasks;
-    using NServiceBus.AcceptanceTesting;
-    using NServiceBus.AcceptanceTests.EndpointTemplates;
+    using AcceptanceTesting;
+    using EndpointTemplates;
+    using NServiceBus.EventSourcing;
     using NUnit.Framework;
 
     public class When_sending_from_an_aggregate : NServiceBusAcceptanceTest
@@ -44,7 +43,7 @@ namespace NServiceBus.AcceptanceTests.EventSourcing
                     Context.LastResponse = message.Data;
                     if (message.Data < 5)
                     {
-                        await context.Reply(new MyRequest()
+                        await context.Reply(new MyRequest
                         {
                             Data = 1,
                             Id = message.Id
@@ -115,7 +114,7 @@ namespace NServiceBus.AcceptanceTests.EventSourcing
                 public void Apply(RequestProcessedEvent e)
                 {
                     accumulator += e.Data;
-                    Send(new MyReply()
+                    Send(new MyReply
                     {
                         Data = accumulator,
                         Id = Id

@@ -5,7 +5,6 @@ using NServiceBus.Extensibility;
 using NServiceBus.Internal;
 using NServiceBus.Logging;
 using NServiceBus.Persistence;
-using NServiceBus.Persistence.EventStore.SagaPersister;
 using NServiceBus.Sagas;
 using NServiceBus.Transport;
 
@@ -85,6 +84,7 @@ namespace NServiceBus
                 return default(TSagaData);
             }
             var sagaData = await operations.ReadSagaData<TSagaData>(dataStream, slice.Events[0], messageId);
+            // ReSharper disable once CompareNonConstrainedGenericWithNull
             if (sagaData != null)
             {
                 return sagaData;

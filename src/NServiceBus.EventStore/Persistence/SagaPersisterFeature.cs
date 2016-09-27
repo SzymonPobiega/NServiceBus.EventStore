@@ -1,5 +1,4 @@
 ﻿using NServiceBus.Features;
-using NServiceBus.Internal;
 
 namespace NServiceBus
 {

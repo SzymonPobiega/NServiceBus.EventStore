@@ -5,19 +5,16 @@ namespace NServiceBus.Internal
 {
     public class ConnectionConfigurationBuilder
     {
-        private readonly ConnectionSettingsBuilder connectionSettingsBuilder = global::EventStore.ClientAPI.ConnectionSettings.Create();
-        private ClusterSettingsBuilder clusterSettingsBuilder;
+        ConnectionSettingsBuilder connectionSettingsBuilder = EventStore.ClientAPI.ConnectionSettings.Create();
+        ClusterSettingsBuilder clusterSettingsBuilder;
 
-        public ConnectionSettingsBuilder ConnectionSettings
-        {
-            get { return connectionSettingsBuilder; }
-        }
+        public ConnectionSettingsBuilder ConnectionSettings => connectionSettingsBuilder;
 
         public ClusterSettingsBuilder ClusterSettings
         {
             get {
                 return clusterSettingsBuilder ??
-                       (clusterSettingsBuilder = global::EventStore.ClientAPI.ClusterSettings.Create());
+                       (clusterSettingsBuilder = EventStore.ClientAPI.ClusterSettings.Create());
             }
         }
 
@@ -33,19 +30,7 @@ namespace NServiceBus.Internal
                 ? new IPEndPoint(IPAddress.Parse(SingleNodeAddress), SingleNodePort ?? 1113) 
                 : null;
 
-            var httpEndpoint = new IPEndPoint(IPAddress.Parse(HttpEndpointAddress ?? SingleNodeAddress), HttpPort ?? 2113);
-
-            ClusterSettings clusterSettings = null;
-            //TODO
-            //if (clusterSettingsBuilder != null)
-            //{
-            //    clusterSettings = clusterSettingsBuilder;
-            //}
-            //else
-            //{
-            //    clusterSettings = null;
-            //}
-            return new ConnectionConfiguration(connectionSettingsBuilder, clusterSettings, singleNodeAddress, httpEndpoint, Name);
+            return new ConnectionConfiguration(connectionSettingsBuilder, null, singleNodeAddress);
         }
     }
 }

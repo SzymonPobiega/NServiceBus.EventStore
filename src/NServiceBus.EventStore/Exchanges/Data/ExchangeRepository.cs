@@ -4,7 +4,6 @@ using EventStore.ClientAPI;
 using EventStore.ClientAPI.Exceptions;
 using Newtonsoft.Json;
 using NServiceBus.Internal;
-using NServiceBus.Logging;
 
 namespace NServiceBus
 {
@@ -32,7 +31,7 @@ namespace NServiceBus
                 var readResult = await GetExchanges().ConfigureAwait(false);
                 var exchangeCollection = readResult.Item1;
                 updateAction(exchangeCollection);
-                string instring = JsonConvert.SerializeObject(exchangeCollection, Formatting.Indented, Json.JsonSettings);
+                var instring = JsonConvert.SerializeObject(exchangeCollection, Formatting.Indented, Json.JsonSettings);
                 var data = Json.UTF8NoBom.GetBytes(instring);
                 var eventData = new EventData(Guid.NewGuid(), "exchange-data", true, data, new byte[0]);
                 try

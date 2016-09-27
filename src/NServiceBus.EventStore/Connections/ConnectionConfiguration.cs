@@ -1,32 +1,23 @@
 ﻿using System;
 using System.Net;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Projections;
 
 namespace NServiceBus.Internal
 {
     public class ConnectionConfiguration : IConnectionConfiguration
     {
-        private readonly ConnectionSettings connectionSettings;
-        private readonly ClusterSettings clusterSettings;
-        private readonly IPEndPoint singleNodeAddress;
-        private readonly IPEndPoint httpEndpoint;
-        private readonly string name;
+        ConnectionSettings connectionSettings;
+        ClusterSettings clusterSettings;
+        IPEndPoint singleNodeAddress;
 
         public ConnectionConfiguration(
             ConnectionSettings connectionSettings,
             ClusterSettings clusterSettings,
-            IPEndPoint singleNodeAddress,
-            IPEndPoint httpEndpoint,
-            string name)
+            IPEndPoint singleNodeAddress)
         {
             if (connectionSettings == null)
             {
                 throw new ArgumentNullException(nameof(connectionSettings));
-            }
-            if (httpEndpoint == null)
-            {
-                throw new ArgumentNullException(nameof(httpEndpoint));
             }
             if (clusterSettings == null && singleNodeAddress == null)
             {
@@ -39,8 +30,6 @@ namespace NServiceBus.Internal
             this.connectionSettings = connectionSettings;
             this.clusterSettings = clusterSettings;
             this.singleNodeAddress = singleNodeAddress;
-            this.httpEndpoint = httpEndpoint;
-            this.name = name;
         }
 
         public IEventStoreConnection CreateConnection(string providedName)

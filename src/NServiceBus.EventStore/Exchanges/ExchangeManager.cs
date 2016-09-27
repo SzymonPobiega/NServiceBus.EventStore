@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using NServiceBus.Internal;
@@ -64,11 +63,10 @@ namespace NServiceBus
 
         async Task<ExchangeDataCollection> LoadExchanges()
         {
-            ExchangeRepository repo;
             using (var connection = connectionConfiguration.CreateConnection("LoadExchanges"))
             {
                 await connection.ConnectAsync().ConfigureAwait(false);
-                repo = new ExchangeRepository(connection);
+                var repo = new ExchangeRepository(connection);
                 return await repo.LoadExchanges().ConfigureAwait(false);
             }
         }

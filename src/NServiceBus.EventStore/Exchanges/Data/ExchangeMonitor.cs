@@ -1,11 +1,11 @@
 using System;
-using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using NServiceBus.Internal;
 using NServiceBus.Logging;
 
 namespace NServiceBus
 {
+    using Internal;
+
     class ExchangeMonitor
     {
         public ExchangeMonitor(IEventStoreConnection connection, Action<ExchangeDataCollection> newVersionDetectedCallback, CriticalError criticalError)
@@ -47,8 +47,8 @@ namespace NServiceBus
 
         void OnNewVersion(EventStoreSubscription sub, ResolvedEvent @event)
         {
-            //var exchangesData = @event.Event.Data.ParseJson<ExchangeDataCollection>();
-            //newVersionDetectedCallback(exchangesData);
+            var exchangesData = @event.Event.Data.ParseJson<ExchangeDataCollection>();
+            newVersionDetectedCallback(exchangesData);
         }
 
         static ILog Logger = LogManager.GetLogger<ExchangeRepository>();

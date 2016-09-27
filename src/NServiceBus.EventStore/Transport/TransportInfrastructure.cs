@@ -15,7 +15,6 @@ namespace NServiceBus
     {
         bool started;
         bool stopped;
-        SettingsHolder settings;
         ConnectionConfiguration connectionConfiguration;
         Lazy<SubscriptionManager> subscriptionManager;
         Lazy<TimeoutProcessor> timeoutProcessor; 
@@ -33,7 +32,6 @@ namespace NServiceBus
                 var uniqueId = settings.GetOrDefault<string>("NServiceBus.EventStore.TimeoutProcessorId") ?? Guid.NewGuid().ToString();
                 return new TimeoutProcessor(() => DateTime.UtcNow, uniqueId, connectionConfiguration);
             });
-            this.settings = settings;
         }
 
         public override TransportReceiveInfrastructure ConfigureReceiveInfrastructure()
@@ -89,7 +87,7 @@ namespace NServiceBus
 
         public override string ToTransportAddress(LogicalAddress logicalAddress)
         {
-            var queue = new StringBuilder(logicalAddress.EndpointInstance.Endpoint.ToString());
+            var queue = new StringBuilder(logicalAddress.EndpointInstance.Endpoint);
             if (logicalAddress.EndpointInstance.Discriminator != null)
             {
                 queue.Append("-" + logicalAddress.EndpointInstance.Discriminator);

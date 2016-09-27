@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
@@ -22,7 +21,6 @@ namespace NServiceBus
         public async Task Start()
         {
             await connection.ConnectAsync().ConfigureAwait(false);
-            executionId = Guid.NewGuid();
             tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
             // ReSharper disable once MethodSupportsCancellation
@@ -244,7 +242,6 @@ namespace NServiceBus
         Func<DateTime> currentTimeProvider;
         readonly string uniqueId;
         IEventStoreConnection connection;
-        Guid executionId;
         CancellationTokenSource tokenSource;
         Task pollerTask;
         static ILog Logger = LogManager.GetLogger<TimeoutProcessor>();

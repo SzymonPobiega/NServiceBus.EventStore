@@ -2,7 +2,6 @@ using System;
 
 namespace NServiceBus.AcceptanceTests
 {
-    using AcceptanceTesting.Customization;
     using NUnit.Framework;
 
     /// <summary>
