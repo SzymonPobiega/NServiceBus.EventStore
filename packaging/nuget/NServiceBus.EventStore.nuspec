@@ -4,8 +4,8 @@
     <id>NServiceBus.EventStore</id>
     <title>NServiceBus.EventStore</title>
     <version>$version$</version>
-    <authors>$authors$</authors>
-    <owners>$owners$</owners>
+    <authors>Szymon Pobiega</authors>
+    <owners>Szymon Pobiega</owners>
     <licenseUrl>$licenseUrl$</licenseUrl>
     <projectUrl>$projectUrl$</projectUrl>
     <iconUrl>$iconUrl$</iconUrl>
@@ -15,11 +15,11 @@
     <copyright>$copyright$</copyright>
     <tags>nservicebus servicebus msmq cqrs publish subscribe</tags>
     <dependencies>
-      <dependency id="NServiceBus" version="[5.0.0.0, 6.0.0.0)" />
-      <dependency id="EventStore.Client" version="[2.0.2, 3.0.0)" />
+      <dependency id="NServiceBus" version="[6.0.0-rc0002, 7.0.0)" />
+      <dependency id="EventStore.Client" version="[3.9.0, 4.0.0)" />
     </dependencies>
   </metadata>
   <files>
-    <file src="..\..\binaries\NServiceBus.EventStore.dll" target="lib\net40" /> 
+    <file src="..\..\binaries\NServiceBus.EventStore.*" target="lib\net452" /> 
   </files>
 </package>
