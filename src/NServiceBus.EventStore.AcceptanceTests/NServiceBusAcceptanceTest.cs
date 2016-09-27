@@ -12,7 +12,7 @@ namespace NServiceBus.AcceptanceTests
     // ReSharper disable once PartialTypeWithSinglePart
     public abstract partial class NServiceBusAcceptanceTest
     {
-        [SetUp]
+        [SetUp]        
         public void SetUpEnvironment()
         {
             Environment.SetEnvironmentVariable("EventStoreTransport.ConnectionString", "singleNode=127.0.0.1;user=admin;password=changeit");
