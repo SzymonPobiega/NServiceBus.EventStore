@@ -6,6 +6,8 @@ using NServiceBus.Persistence.EventStore.SagaPersister;
 
 namespace NServiceBus
 {
+    using System.Linq;
+
     /// <summary>
     /// Provides extensions for using EventStore persistence.
     /// </summary>
@@ -36,14 +38,15 @@ namespace NServiceBus
         /// <summary>
         /// Appends an event to the collection of events to be persisted at the end of message processing.
         /// </summary>
-        public static EventData AtomicQueueForStore(this SynchronizedStorageSession session, string destinationStream, EventData e)
+        public static Task AppendViaOutbox(this SynchronizedStorageSession session, string stream, int expectedVersion, params EventData[] events)
         {
             var outboxSession = session as OutboxEventStoreSynchronizedStorageSession;
             if (outboxSession == null)
             {
                 throw new Exception("Atomic appends are not supported without the EventStore outbox.");
             }
-            return outboxSession.AtomicAppend(destinationStream, e);
+            var links = events.Select(e => outboxSession.AddPersistenceOperation(stream, e)).ToArray();
+            return session.AppendToStreamAsync(stream, expectedVersion, links);
         }
 
         static EventStoreSynchronizedStorageSession DowncastSession(SynchronizedStorageSession session)

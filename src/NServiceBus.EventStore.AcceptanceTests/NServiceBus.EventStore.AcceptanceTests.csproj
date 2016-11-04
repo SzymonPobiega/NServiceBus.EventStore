@@ -68,7 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-rc0002\Sagas\When_a_finder_exists_and_context_information_added.cs" />
-    <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0-rc0002\Sagas\When_a_finder_exists_and_found_saga.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0\ApiExtension\When_extending_sendoptions.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0\ApiExtension\When_extending_the_publish_api.cs" />
     <Compile Include="App_Packages\NSB.AcceptanceTests.6.0.0\Audit\When_auditing.cs" />

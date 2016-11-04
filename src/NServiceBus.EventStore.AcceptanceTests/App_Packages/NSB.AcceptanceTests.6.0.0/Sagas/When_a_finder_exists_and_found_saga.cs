@@ -8,6 +8,7 @@
     using NServiceBus.Sagas;
     using NUnit.Framework;
     using Persistence;
+    using Transport;
 
     [TestFixture]
     public class When_a_finder_exists_and_found_saga : NServiceBusAcceptanceTest
@@ -43,16 +44,12 @@
 
                 public ISagaPersister SagaPersister { get; set; }
 
-                public async Task<TestSaga08.SagaData08> FindBy(SomeOtherMessage message, SynchronizedStorageSession storageSession, ReadOnlyContextBag context)
+                public Task<TestSaga08.SagaData08> FindBy(SomeOtherMessage message, SynchronizedStorageSession storageSession, ReadOnlyContextBag context)
                 {
                     Context.FinderUsed = true;
-                    var sagaInstance = new TestSaga08.SagaData08
-                    {
-                        Property = "jfbsjdfbsdjh"
-                    };
-                    //Make sure saga exists in the store. Persisters expect it there when they save saga instance after processing a message.
-                    await SagaPersister.Save(sagaInstance, SagaCorrelationProperty.None, storageSession, new ContextBag()).ConfigureAwait(false);
-                    return sagaInstance;
+                    var bag = new ContextBag();
+                    bag.Set(context.Get<IncomingMessage>());
+                    return SagaPersister.Get<TestSaga08.SagaData08>("Property", "Test", storageSession, bag);
                 }
             }
 

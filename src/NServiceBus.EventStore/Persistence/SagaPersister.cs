@@ -13,9 +13,7 @@ namespace NServiceBus
     class SagaPersister : ISagaPersister
     {
         internal const string SagaDataEventType = "$saga-data";
-        internal const string SagaDataLockEventType = "$saga-data-lock";
         internal const string SagaIndexEventType = "$saga-index";
-        internal const string SagaMarkerEventType = "$saga-marker";
 
         public Task Save(IContainSagaData sagaData, SagaCorrelationProperty correlationProperty, SynchronizedStorageSession session, ContextBag context)
         {
@@ -55,8 +53,7 @@ namespace NServiceBus
 
             if (session.SupportsOutbox())
             {
-                var outboxLink = session.AtomicQueueForStore(dataStream, stateChangeEvent);
-                return session.AppendToStreamAsync(dataStream, versionInfo.Version, outboxLink);
+                return session.AppendViaOutbox(dataStream, versionInfo.Version, stateChangeEvent);
             }
             return session.AppendToStreamAsync(dataStream, versionInfo.Version, stateChangeEvent);
         }

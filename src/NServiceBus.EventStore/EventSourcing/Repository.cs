@@ -58,13 +58,12 @@ namespace NServiceBus.EventSourcing
 
             foreach (var act in sendAction)
             {
-                await act(context);
+                await act(context).ConfigureAwait(false);
             }
 
             if (context.SynchronizedStorageSession.SupportsOutbox())
             {
-                var links = eventData.Select(e => context.SynchronizedStorageSession.AtomicQueueForStore(streamName, e));
-                await context.SynchronizedStorageSession.AppendToStreamAsync(streamName, aggregate.Version, links.ToArray()).ConfigureAwait(false);
+                await context.SynchronizedStorageSession.AppendViaOutbox(streamName, aggregate.Version, eventData.ToArray()).ConfigureAwait(false);
             }
             else
             {

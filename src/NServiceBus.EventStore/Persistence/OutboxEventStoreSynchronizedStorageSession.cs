@@ -4,7 +4,7 @@ namespace NServiceBus
 {
     class OutboxEventStoreSynchronizedStorageSession : EventStoreSynchronizedStorageSession
     {
-        public EventData AtomicAppend(string destinationStream, EventData eventData)
+        public EventData AddPersistenceOperation(string destinationStream, EventData eventData)
         {
             return outboxTransaction.AddPersistenceOperation(destinationStream, eventData);
         }
