@@ -9,7 +9,7 @@ using NServiceBus.Logging;
 
 namespace NServiceBus
 {
-    public class TimeoutProcessor
+    class TimeoutProcessor
     {
         public TimeoutProcessor(Func<DateTime> currentTimeProvider, string uniqueId, IConnectionConfiguration connectionConfiguration)
         {

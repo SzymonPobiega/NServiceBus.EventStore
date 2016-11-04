@@ -1,6 +1,6 @@
 ﻿namespace NServiceBus.Persistence.EventStore.SagaPersister
 {
-    public class SagaVersion
+    class SagaVersion
     {
         public int Version { get; }
         public string StreamName { get; }
