@@ -8,7 +8,7 @@ namespace NServiceBus.Internal
     public class ConnectionStringParser
     {
         private static readonly List<PropertyParser> propertyParsers
-            = new List<PropertyParser>()
+            = new List<PropertyParser>
                 {
                     new PropertyParser((p, b) => b.Name = p["name"], "name"),
                     new PropertyParser((p, b) => b.ConnectionSettings.SetDefaultUserCredentials(new UserCredentials(p["user"],p["password"])), "user","password"),

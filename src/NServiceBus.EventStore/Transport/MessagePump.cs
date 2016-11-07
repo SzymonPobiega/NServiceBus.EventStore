@@ -15,7 +15,7 @@ namespace NServiceBus
 {
     class MessagePump : IPushMessages
     {
-        
+
         public MessagePump(IConnectionConfiguration connectionConfiguration, Func<CriticalError, Task> onStart, Func<Task> onStop)
         {
             this.onStart = onStart;
@@ -69,7 +69,7 @@ namespace NServiceBus
         void OnEvent(EventStorePersistentSubscriptionBase s, ResolvedEvent evnt)
         {
             concurrencyLimiter.Wait(cancellationToken);
-            
+
             var tokenSource = new CancellationTokenSource();
             var pushContext = ToMessageContext(evnt, tokenSource);
             if (pushContext == null) //system message
@@ -100,7 +100,7 @@ namespace NServiceBus
             // We insert the original task into the runningReceiveTasks because we want to await the completion
             // of the running receives. ExecuteSynchronously is a request to execute the continuation as part of
             // the transition of the antecedents completion phase. This means in most of the cases the continuation
-            // will be executed during this transition and the antecedent task goes into the completion state only 
+            // will be executed during this transition and the antecedent task goes into the completion state only
             // after the continuation is executed. This is not always the case. When the TPL thread handling the
             // antecedent task is aborted the continuation will be scheduled. But in this case we don't need to await
             // the continuation to complete because only really care about the receive operations. The final operation
@@ -171,7 +171,7 @@ namespace NServiceBus
             var transportTransaction = new TransportTransaction();
             transportTransaction.Set(connection);
             var data = metadata.Empty //because EventStore inserts {}
-                ? new byte[0] 
+                ? new byte[0]
                 : evnt.Event.Data;
             string contentType;
             if (headers.TryGetValue(Headers.ContentType, out contentType))
@@ -184,7 +184,7 @@ namespace NServiceBus
             return context;
         }
 
-        
+
 
         public async Task Stop()
         {

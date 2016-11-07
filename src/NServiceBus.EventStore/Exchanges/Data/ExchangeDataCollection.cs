@@ -18,7 +18,7 @@ namespace NServiceBus
             {
                 return;
             }
-            Exchanges.Add(new ExchangeData()
+            Exchanges.Add(new ExchangeData
             {
                 Name = name
             });
