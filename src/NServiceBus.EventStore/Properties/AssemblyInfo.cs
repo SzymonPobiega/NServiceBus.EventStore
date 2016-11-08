@@ -8,4 +8,3 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("release")]
 [assembly: ComVisible(false)]
 [assembly: InternalsVisibleTo("NServiceBus.EventStore.Tests")]
-

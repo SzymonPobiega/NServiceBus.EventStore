@@ -26,7 +26,7 @@ namespace NServiceBus
 
         public Task Commit()
         {
-            var record = new OutboxRecordEvent()
+            var record = new OutboxRecordEvent
             {
                 TransportOperations = transportOperations,
                 PersistenceOperations = persistenceOperations.ToDictionary(o => o.Event.EventId, o => o.DestinationStream)
@@ -43,7 +43,7 @@ namespace NServiceBus
             persistenceOperations.Add(new OutboxPersistenceOperation(destinationStream, eventData));
             var index = persistenceOperations.Count;
             var link = Json.UTF8NoBom.GetBytes($"{index}@{outboxStream}");
-            var linkMetadata = new LinkEvent()
+            var linkMetadata = new LinkEvent
             {
                 MessageId = messageId
             };
